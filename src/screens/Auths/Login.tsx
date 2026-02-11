@@ -1,8 +1,20 @@
 import React from "react";
 import {View, Text, StyleSheet, Image, Platform, TextInput, TouchableOpacity } from "react-native";
 import { Mail, Lock } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "../../navigations/types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
 
 export default function Login(){
+
+    type NavigationProp = NativeStackNavigationProp<
+        RootStackParamList,
+        'Register'
+    >
+
+    const navigation = useNavigation<NavigationProp>();
+
     return(
         <View style={styles.container}>
             <View style={styles.ViewImage}>
@@ -31,13 +43,15 @@ export default function Login(){
             </View>
 
             <View style={styles.viewButton}>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity 
+                onPress={() => navigation.navigate("Home")}
+                style={styles.button}>
                     <Text style={styles.Text3}>Entrar</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.viewRegister}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                     <Text style={styles.Text4}>Não tem conta? Criar conta</Text>
                 </TouchableOpacity>
             </View>
@@ -88,7 +102,7 @@ const styles = StyleSheet.create({
     },
 
     Inputs: {
-        
+        marginLeft: 8,
     }, 
 
     viewButton: {

@@ -1,8 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import TabNavigator from "./TabNavigator";
 import Login from "../screens/Auths/Login";
 import Register from "../screens/Auths/Register";
-import Home from "../screens/Homes/Home";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -21,11 +21,7 @@ export default function StackNavigator(){
             }}
             />
 
-            <Stack.Screen name="Home" component={Home}
-            options={{
-                headerShown: false,
-            }}
-            />
+            <Stack.Screen name="Home" component={TabNavigator} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

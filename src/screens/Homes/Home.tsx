@@ -2,14 +2,24 @@ import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { Plus, TrendingDown, BarChart3, List } from "lucide-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { TabParamList } from "../../navigations/types";
+
 
 import { SummaryCard } from "../../components/SummaryCard";
 import { TotalSalesBanner } from "../../components/TotalSalesBanner";
 import { QuickAction } from "../../components/QuickAction";
 import { RecentSale } from "../../components/RecentSale";
 
+type NavigationProp = BottomTabNavigationProp<
+    TabParamList,
+    'HomeTab'
+>;
 
 export default function HomeScreen() {
+    const navigation = useNavigation<NavigationProp>();
+
     return (
         <SafeAreaProvider style={styles.safe}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
@@ -29,10 +39,10 @@ export default function HomeScreen() {
 
                 <Text style={styles.sectionTitle}>Atalhos rápidos</Text>
                 <View style={styles.row}>
-                    <QuickAction label="Nova Venda" Icon={Plus} color="#FFF" bgColor="#3653E2" isPrimary />
+                    <QuickAction label="Nova Venda" Icon={Plus} color="#FFF" bgColor="#3653E2" isPrimary onPress={() => navigation.navigate('Novo')} />
                     <QuickAction label="Gastos" Icon={TrendingDown} color="#EF4444" bgColor="#FEE2E2" />
                     <QuickAction label="Relatórios" Icon={BarChart3} color="#10B981" bgColor="#D1FAE5" />
-                    <QuickAction label="Vendas" Icon={List} color="#F59F0A" bgColor="#FEF3C7" />
+                    <QuickAction label="Vendas" Icon={List} color="#F59F0A" bgColor="#FEF3C7" onPress={() => navigation.navigate('Vendas')}  />
                 </View>
 
                 <Text style={styles.sectionTitle}>Vendas recentes</Text>

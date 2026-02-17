@@ -55,6 +55,7 @@ export default function TabNavigator() {
             component={HomeScreen} 
             options={{
                 tabBarLabel: 'Home',
+                // eslint-disable-next-line react/no-unstable-nested-components
                 tabBarIcon: ({ color, size }) => <Home size={size} color={color} />
             }}
         />
@@ -64,6 +65,7 @@ export default function TabNavigator() {
             component={SalesList} 
             options={{
                 tabBarLabel: 'Vendas',
+                // eslint-disable-next-line react/no-unstable-nested-components
                 tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />
             }}
         />
@@ -73,7 +75,9 @@ export default function TabNavigator() {
             component={AddSales} 
             options={{
             tabBarLabel: '', 
-                tabBarIcon: () => <Plus size={32} color="#FFF" />,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                tabBarIcon: () => <Plus size={32} color="#FFF" style={{ marginLeft: -1 }} />,
+                // eslint-disable-next-line react/no-unstable-nested-components
                 tabBarButton: (props) => <CustomTabBarButton {...props} />
             }}
             />
@@ -83,6 +87,7 @@ export default function TabNavigator() {
             component={Productos} 
             options={{
                 tabBarLabel: 'Produtos',
+                // eslint-disable-next-line react/no-unstable-nested-components
                 tabBarIcon: ({ color, size }) => <Package size={size} color={color} />
             }}
             />
@@ -92,6 +97,7 @@ export default function TabNavigator() {
             component={Profile} 
             options={{
                 tabBarLabel: 'Perfil',
+                // eslint-disable-next-line react/no-unstable-nested-components
                 tabBarIcon: ({ color, size }) => <User size={size} color={color} />
             }}
             />
@@ -111,9 +117,9 @@ const styles = StyleSheet.create({
     View: {
         width: 65,
         height: 65,
-        borderRadius: 32.5,
+        borderRadius: 35,
         backgroundColor: '#4963E4',
-        justifyContent: 'center', 
-        alignItems: 'center',
+        justifyContent: 'center',   
+    alignItems: 'center', 
     }
 });

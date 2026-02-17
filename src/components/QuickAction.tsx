@@ -8,10 +8,11 @@ interface Props {
     color: string; 
     bgColor: string; 
     isPrimary?: boolean;
+    onPress?: () => void;
 }
 
-export const QuickAction = ({ label, Icon, color, bgColor, isPrimary }: Props) => (
-    <TouchableOpacity style={styles.container}>
+export const QuickAction = ({ label, Icon, color, bgColor, isPrimary, onPress }: Props) => (
+    <TouchableOpacity style={styles.container} onPress={onPress}>
         <View style={[
             styles.box, 
             { backgroundColor: isPrimary ? '#3653E2' : bgColor }

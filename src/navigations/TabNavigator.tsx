@@ -111,7 +111,9 @@ const styles = StyleSheet.create({
     View: {
         width: 65,
         height: 65,
-        borderRadius: 35,
+        borderRadius: 32.5,
         backgroundColor: '#4963E4',
+        justifyContent: 'center', 
+        alignItems: 'center',
     }
 });

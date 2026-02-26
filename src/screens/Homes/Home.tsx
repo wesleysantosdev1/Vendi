@@ -39,10 +39,34 @@ export default function HomeScreen() {
 
                 <Text style={styles.sectionTitle}>Atalhos rápidos</Text>
                 <View style={styles.row}>
-                    <QuickAction label="Nova Venda" Icon={Plus} color="#FFF" bgColor="#3653E2" isPrimary onPress={() => navigation.navigate('Novo')} />
-                    <QuickAction label="Gastos" Icon={TrendingDown} color="#EF4444" bgColor="#FEE2E2" />
-                    <QuickAction label="Relatórios" Icon={BarChart3} color="#10B981" bgColor="#D1FAE5" />
-                    <QuickAction label="Vendas" Icon={List} color="#F59F0A" bgColor="#FEF3C7" onPress={() => navigation.navigate('Vendas')}  />
+                    <QuickAction 
+                        label="Nova Venda" 
+                        Icon={Plus} 
+                        color="#FFF" 
+                        bgColor="#3653E2" 
+                        isPrimary 
+                        onPress={() => navigation.navigate('Novo')} 
+                    />
+                    <QuickAction 
+                        label="Gastos" 
+                        Icon={TrendingDown} 
+                        color="#EF4444" 
+                        bgColor="#FEE2E2" 
+                        onPress={() => navigation.navigate('Expense')}
+                    />
+                    <QuickAction 
+                        label="Relatórios" 
+                        Icon={BarChart3} 
+                        color="#10B981" 
+                        bgColor="#D1FAE5" 
+                    />
+                    <QuickAction 
+                        label="Vendas" 
+                        Icon={List} 
+                        color="#F59F0A" 
+                        bgColor="#FEF3C7" 
+                        onPress={() => navigation.navigate('Vendas')}  
+                    />
                 </View>
 
                 <Text style={styles.sectionTitle}>Vendas recentes</Text>

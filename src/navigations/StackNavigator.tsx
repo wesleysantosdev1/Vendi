@@ -1,8 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import TabNavigator from "./TabNavigator";
+
 import Login from "../screens/Auths/Login";
 import Register from "../screens/Auths/Register";
 import SaleDetails from "../screens/Sales/SaleDetails";
+import AddExpense from "../screens/Expenses/AddExpense";
 
 
 const Stack = createNativeStackNavigator();
@@ -32,6 +34,12 @@ export default function StackNavigator(){
             options={{ 
                 headerShown: false 
             }} 
+            />
+
+            <Stack.Screen name="Expense" component={AddExpense} 
+            options={{
+                headerShown: false
+            }}
             />
         </Stack.Navigator>
     );

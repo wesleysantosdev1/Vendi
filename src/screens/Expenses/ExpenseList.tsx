@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Search, Plus, ArrowUpRight } from 'lucide-react-native';
-import { useExpenseManager } from './hooks/useExpenseManager';
+import { useExpense } from '../../contexts/ExpenseContext'; 
 import { ExpenseItem } from './components/ExpenseItem';
 import { ExpenseDetailModal } from './components/ExpenseDetailModal';
 
 export default function ExpenseList({ navigation }: any) {
-    const { expenses, totalMonthlyExpenses } = useExpenseManager();
+    const { expenses, totalMonthlyExpenses } = useExpense();
     const [selectedExpense, setSelectedExpense] = useState<any>(null);
 
     return (
@@ -16,7 +16,7 @@ export default function ExpenseList({ navigation }: any) {
                 <Text style={styles.title}>Gastos / Compras</Text>
                 <TouchableOpacity 
                     style={styles.btnAdd} 
-                    onPress={() => navigation.navigate('AddExpense')}
+                    onPress={() => navigation.navigate('AddExpenseForm')} 
                 >
                     <Plus size={18} color="#FFF" />
                     <Text style={styles.btnText}>Adicionar</Text>
@@ -33,14 +33,14 @@ export default function ExpenseList({ navigation }: any) {
 
             <View style={styles.searchBox}>
                 <Search size={20} color="#828489" />
-                <TextInput placeholder="Buscar gastos..." style={styles.searchInput} />
+                <TextInput placeholder="Buscar gastos..." style={styles.searchInput} placeholderTextColor="#828489"/>
             </View>
 
             <FlatList
                 data={expenses}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                <ExpenseItem item={item} onPress={() => setSelectedExpense(item)} />
+                    <ExpenseItem item={item} onPress={() => setSelectedExpense(item)} />
                 )}
                 contentContainerStyle={styles.list}
             />

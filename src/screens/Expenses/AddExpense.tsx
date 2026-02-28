@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Package, DollarSign, Calendar, Hash, FileText } from 'lucide-react-native';
-import { InputVenda } from './components/InputVenda';
-import { useExpenseManager } from './hooks/useExpenseManager.ts'
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
+import { useExpense } from '../../contexts/ExpenseContext';
 
-export default function AddExpense() {
-    const navigation = useNavigation();
-    const { addExpense } = useExpenseManager();
+export default function AddExpense({ navigation }: any) {
+    const { addExpense } = useExpense();
     const [type, setType] = useState<'merchandise' | 'operational'>('merchandise');
-
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
+    const [date, setDate] = useState('');
     const [quantity, setQuantity] = useState('');
 
     const handleSave = () => {
-        if (!description || !value) {
-            Alert.alert("Atenção", "Preencha os campos obrigatórios.");
+        if (!description || !value || !date) {
+            Alert.alert("Erro", "Preencha os campos obrigatórios");
             return;
         }
 
@@ -24,163 +22,212 @@ export default function AddExpense() {
             type,
             description,
             value: parseFloat(value.replace(',', '.')),
-            date: "25/02/2026",
-            quantity: type === 'merchandise' ? parseInt(quantity) : 0,
-            category: type === 'merchandise' ? 'Mercadoria / Estoque' : 'Gasto operacional'
+            date,
+            quantity: quantity ? parseInt(quantity) : 0,
+            category: type === 'merchandise' ? 'Mercadoria' : 'Operacional'
         });
 
         navigation.goBack();
-    }
+    };
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Novo Gasto / Compra</Text>
-            
-            <Text style={styles.sectionTitle}>Tipo do gasto</Text>
-            <View style={styles.typeRow}>
-                <TouchableOpacity 
-                style={[styles.typeBtn, type === 'merchandise' && styles.typeBtnActive]} 
-                onPress={() => setType('merchandise')}
-                >
-                    <Package size={24} color={type === 'merchandise' ? '#EF4444' : '#828489'} />
-                    <Text style={[styles.typeText, type === 'merchandise' && styles.typeTextActive]}>Compra de mercadoria</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                style={[styles.typeBtn, type === 'operational' && styles.typeBtnActive]} 
-                onPress={() => setType('operational')}
-                >
-                    <DollarSign size={24} color={type === 'operational' ? '#EF4444' : '#828489'} />
-                    <Text style={[styles.typeText, type === 'operational' && styles.typeTextActive]}>Gasto operacional</Text>
-                </TouchableOpacity>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Novo Gasto / Compra</Text>
             </View>
 
-            <InputVenda 
-                placeholder="Descrição do gasto" 
-                Icon={FileText} 
-                value={description} 
-                onChangeText={setDescription}
-            />
+            <ScrollView contentContainerStyle={styles.content}>
+                <Text style={styles.label}>Tipo do gasto</Text>
+                
+                <View style={styles.typeContainer}>
+                    <TouchableOpacity 
+                        style={[styles.typeCard, type === 'merchandise' && styles.selectedType]} 
+                        onPress={() => setType('merchandise')}
+                    >
+                        <Package size={24} color={type === 'merchandise' ? '#EF4444' : '#828489'} />
+                        <Text style={[styles.typeText, type === 'merchandise' && styles.selectedText]}>Compra de{'\n'}mercadoria</Text>
+                    </TouchableOpacity>
 
-            <InputVenda 
-                placeholder="Valor total (R$)" 
-                Icon={DollarSign} 
-                keyboardType="numeric" 
-                value={value}
-                onChangeText={setValue}
-            />
+                    <TouchableOpacity 
+                        style={[styles.typeCard, type === 'operational' && styles.selectedType]}
+                        onPress={() => setType('operational')}
+                    >
+                        <DollarSign size={24} color={type === 'operational' ? '#EF4444' : '#828489'} />
+                        <Text style={[styles.typeText, type === 'operational' && styles.selectedText]}>Gasto{'\n'}operacional</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <InputVenda 
-                placeholder="dd/mm/aaaa" 
-                Icon={Calendar} 
-            />
+                <View style={styles.inputContainer}>
+                    <FileText size={20} color="#828489" />
+                    <TextInput 
+                        style={styles.input} 
+                        placeholder={type === 'merchandise' ? "Ex: 1 caixa de batom" : "Descrição do gasto"}
+                        value={description}
+                        onChangeText={setDescription}
+                    />
+                </View>
 
-            {type === 'merchandise' && (
-                <>
-                <InputVenda 
-                    placeholder="Quantidade comprada" 
-                    Icon={Hash} 
-                    keyboardType="numeric" 
-                    value={quantity} 
-                    onChangeText={setQuantity} 
-                />
+                <View style={styles.inputContainer}>
+                    <DollarSign size={20} color="#828489" />
+                    <TextInput 
+                        style={styles.input} 
+                        placeholder="Valor total (R$)" 
+                        keyboardType="numeric"
+                        value={value}
+                        onChangeText={setValue}
+                    />
+                </View>
+
+                <View style={styles.inputContainer}>
+                    <Calendar size={20} color="#828489" />
+                    <TextInput 
+                        style={styles.input} 
+                        placeholder="dd/mm/aaaa"
+                        value={date}
+                        onChangeText={setDate}
+                    />
+                </View>
+
+                {type === 'merchandise' && (
+                    <View style={styles.inputContainer}>
+                        <Hash size={20} color="#828489" />
+                        <TextInput 
+                            style={styles.input} 
+                            placeholder="Quantidade comprada" 
+                            keyboardType="numeric"
+                            value={quantity}
+                            onChangeText={setQuantity}
+                        />
+                    </View>
+                )}
+
                 <Text style={styles.sectionTitle}>Vincular a produto (opcional)</Text>
-                <TouchableOpacity style={styles.linkProductBtn}>
-                    <Package size={20} color="#4963E4" />
-                    <Text style={styles.linkProductText}>Selecionar produto</Text>
+                <TouchableOpacity style={styles.selectProductBtn}>
+                    <Box size={20} color="#4963E4" />
+                    <Text style={styles.selectProductText}>Selecionar produto</Text>
                 </TouchableOpacity>
-                </>
-            )}
 
-            <TouchableOpacity 
-                style={styles.btnSave}
-                onPress={handleSave}
-            >
-                <Text style={styles.btnSaveText}>Salvar gasto</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                    <Text style={styles.saveBtnText}>Salvar gasto</Text>
+                </TouchableOpacity>
+
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        backgroundColor: '#FFF', 
+        backgroundColor: '#FFF' 
+    },
+
+    header: { 
         padding: 20 
     },
 
     title: { 
-        fontSize: 24, 
+        fontSize: 22, 
         fontWeight: 'bold', 
-        marginBottom: 20 
+        color: '#000' 
     },
 
-    sectionTitle: { 
+    content: { 
+        padding: 20 
+    },
+
+    label: { 
         fontSize: 16, 
         fontWeight: 'bold', 
-        marginVertical: 15 
+        marginBottom: 15, 
+        color: '#000' 
     },
 
-    typeRow: { 
+    typeContainer: { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
-        marginBottom: 20 
+        marginBottom: 25 
     },
 
-    typeBtn: { 
+    typeCard: { 
         width: '48%', 
-        padding: 20, 
-        borderRadius: 16, 
         backgroundColor: '#F0F2F5', 
+        padding: 20, borderRadius: 12,
         alignItems: 'center', 
+        justifyContent: 'center', 
         borderWidth: 1, 
         borderColor: 'transparent' 
     },
 
-    typeBtnActive: { 
+    selectedType: { 
         backgroundColor: '#FEE2E2', 
         borderColor: '#EF4444' 
     },
 
     typeText: { 
-        fontSize: 13, 
-        textAlign: 'center',
         marginTop: 10, 
-        color: '#828489' 
+        textAlign: 'center', 
+        color: '#828489', 
+        fontWeight: '500' 
     },
 
-    typeTextActive: { 
+    selectedText: { 
         color: '#EF4444', 
         fontWeight: 'bold' 
     },
+    
+    inputContainer: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#F0F2F5', 
+        paddingHorizontal: 15, 
+        height: 55, 
+        borderRadius: 12, 
+        marginBottom: 15 
+    },
 
-    linkProductBtn: { 
+    input: { 
+        flex: 1, 
+        marginLeft: 10, 
+        fontSize: 15, 
+        color: '#1A1A1A' 
+    },
+    
+    sectionTitle: { 
+        fontSize: 14, 
+        fontWeight: 'bold', 
+        marginTop: 10, 
+        marginBottom: 10, 
+        color: '#000' 
+    },
+
+    selectProductBtn: { 
         flexDirection: 'row', 
         backgroundColor: '#F0F2F5', 
-        padding: 15, 
+        height: 55, 
+        borderRadius: 12, 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        marginBottom: 30 
+    },
+
+    selectProductText: { 
+        color: '#4963E4', 
+        fontWeight: 'bold', 
+        marginLeft: 10 
+    },
+    
+    saveBtn: { 
+        backgroundColor: '#EF4444', 
+        height: 55, 
         borderRadius: 12, 
         alignItems: 'center', 
         justifyContent: 'center' 
     },
 
-    linkProductText: { 
-        marginLeft: 10, 
-        color: '#4963E4', 
-        fontWeight: 'bold' 
-    },
-
-    btnSave: { 
-        backgroundColor: '#EF4444', 
-        height: 55, 
-        borderRadius: 14, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        marginTop: 30 
-    },
-
-    btnSaveText: { 
+    saveBtnText: { 
         color: '#FFF', 
-        fontWeight: 'bold', 
-        fontSize: 16 
+        fontSize: 16, 
+        fontWeight: 'bold' 
     }
 });

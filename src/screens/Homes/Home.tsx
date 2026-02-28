@@ -52,7 +52,7 @@ export default function HomeScreen() {
                         Icon={TrendingDown} 
                         color="#EF4444" 
                         bgColor="#FEE2E2" 
-                        onPress={() => navigation.navigate('Expense')}
+                        onPress={() => navigation.navigate('ExpensesList')}
                     />
                     <QuickAction 
                         label="Relatórios" 

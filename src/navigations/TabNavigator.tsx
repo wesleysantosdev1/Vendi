@@ -1,5 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import  { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Home, ShoppingBag, Plus, Package, User } from 'lucide-react-native';
 
@@ -9,8 +10,19 @@ import AddSales from "../screens/Sales/AddSale";
 import Productos from "../screens/Products/Productos";
 import Profile from "../screens/Profile/Perfil";
 import HomeScreen from "../screens/Homes/Home";
+import ExpenseList from "../screens/Expenses/ExpenseList";
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function HomeStack() {
+    return(
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="HomeMain" component={HomeScreen} />
+            <Stack.Screen name="ExpensesList" component={ExpenseList} />
+        </Stack.Navigator>
+    );
+}
 
 const CustomTabBarButton = ({ children, onPress }: any) => (
     <TouchableOpacity 
@@ -52,7 +64,7 @@ export default function TabNavigator() {
         >
             <Tab.Screen 
             name="HomeTab" 
-            component={HomeScreen} 
+            component={HomeStack} 
             options={{
                 tabBarLabel: 'Home',
                 // eslint-disable-next-line react/no-unstable-nested-components

@@ -36,11 +36,12 @@ export default function StackNavigator(){
             }} 
             />
 
-            <Stack.Screen name="Expense" component={AddExpense} 
-            options={{
-                headerShown: false
-            }}
-            />
+
+            <Stack.Screen name="AddExpenseForm" component={AddExpense} options={{ 
+                headerShown: true, 
+                headerTitle: '',
+                headerTransparent: true 
+            }} />
         </Stack.Navigator>
     );
 }

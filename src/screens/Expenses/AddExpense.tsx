@@ -123,7 +123,8 @@ const styles = StyleSheet.create({
     },
 
     header: { 
-        padding: 20 
+        paddingTop: 40, 
+        marginLeft: 20
     },
 
     title: { 

@@ -8,6 +8,7 @@ export interface Expense {
     date: string;
     quantity?: number;
     linkedProductId?: string;
+    linkedProductName?: string;
     category: string;
 }
 

@@ -1,16 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
 import { useExpense } from '../../contexts/ExpenseContext';
+import { useProducts, Product } from '../../contexts/ProductContext';
 
 export default function AddExpense({ navigation }: any) {
     const { addExpense } = useExpense();
+    const { products } = useProducts();
     const [type, setType] = useState<'merchandise' | 'operational'>('merchandise');
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [date, setDate] = useState('');
     const [quantity, setQuantity] = useState('');
+
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [isProductModalVisible, setIsProductModalVisible] = useState(false);
+
+    
+    const handleDateChange = (text: string) => {
+        let cleaned = text.replace(/\D/g, '');
+        let formatted = cleaned;
+        if (cleaned.length > 2) {
+            formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+        }
+        if (cleaned.length > 4) {
+            formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
+        }
+        setDate(formatted);
+    }
+
 
     const handleSave = () => {
         if (!description || !value || !date) {
@@ -24,7 +43,9 @@ export default function AddExpense({ navigation }: any) {
             value: parseFloat(value.replace(',', '.')),
             date,
             quantity: quantity ? parseInt(quantity) : 0,
-            category: type === 'merchandise' ? 'Mercadoria' : 'Operacional'
+            category: type === 'merchandise' ? 'Mercadoria' : 'Operacional',
+            linkedProductId: selectedProduct ? selectedProduct.id : undefined,
+            linkedProductName: selectedProduct ? selectedProduct.name : undefined
         });
 
         navigation.goBack();
@@ -84,7 +105,9 @@ export default function AddExpense({ navigation }: any) {
                         style={styles.input} 
                         placeholder="dd/mm/aaaa"
                         value={date}
-                        onChangeText={setDate}
+                        onChangeText={handleDateChange}
+                        keyboardType='numeric'
+                        maxLength={10}
                     />
                 </View>
 
@@ -102,15 +125,54 @@ export default function AddExpense({ navigation }: any) {
                 )}
 
                 <Text style={styles.sectionTitle}>Vincular a produto (opcional)</Text>
-                <TouchableOpacity style={styles.selectProductBtn}>
-                    <Box size={20} color="#4963E4" />
-                    <Text style={styles.selectProductText}>Selecionar produto</Text>
+                <TouchableOpacity 
+                    style={styles.selectProductBtn}
+                    onPress={() => setIsProductModalVisible(true)}
+                >
+                    <Box size={20} color={selectedProduct ? "#4963E4" : "#828489"}/>
+                    <Text style={[styles.selectProductText, !selectedProduct && { color: '#828489' }]}>
+                        {selectedProduct ? selectedProduct.name : 'Selecionar produto'}
+                    </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
                     <Text style={styles.saveBtnText}>Salvar gasto</Text>
                 </TouchableOpacity>
 
+                {/* Modal para a selecao de produtos */}
+                <Modal visible={isProductModalVisible} animationType="slide" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Escolha um produto</Text>
+                            <FlatList 
+                                data={products}
+                                keyExtractor={item => item.id}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity 
+                                        style={styles.productListItem}
+                                        onPress={() => {
+                                            setSelectedProduct(item);
+                                            setIsProductModalVisible(false);
+                                        }}
+                                    >
+                                        <Text style={styles.productListName}>{item.name}</Text>
+                                        <Text style={styles.productListStock}>{item.stock} em estoque</Text>
+                                    </TouchableOpacity>
+                                )}
+                                ListEmptyComponent={<Text style={{textAlign: 'center', marginTop: 20}}>Nenhum produto cadastrado.</Text>}
+                            />
+                            <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsProductModalVisible(false)}>
+                                <Text style={styles.cancelBtnText}>Cancelar</Text>
+                            </TouchableOpacity>
+
+                            {selectedProduct && (
+                                <TouchableOpacity style={styles.clearBtn} onPress={() => { setSelectedProduct(null); setIsProductModalVisible(false); }}>
+                                    <Text style={styles.clearBtnText}>Remover vínculo</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
             </ScrollView>
         </SafeAreaView>
     );
@@ -229,6 +291,66 @@ const styles = StyleSheet.create({
     saveBtnText: { 
         color: '#FFF', 
         fontSize: 16, 
+        fontWeight: 'bold' 
+    }, 
+
+    modalOverlay: { 
+        flex: 1, 
+        backgroundColor: 'rgba(0,0,0,0.5)', 
+        justifyContent: 'flex-end' 
+    },
+
+    modalContent: { 
+        backgroundColor: '#FFF', 
+        padding: 20, 
+        borderTopLeftRadius: 20, 
+        borderTopRightRadius: 20, maxHeight: '80%' 
+    },
+
+    modalTitle: { 
+        fontSize: 18, 
+        fontWeight: 'bold', 
+        marginBottom: 15 
+    
+    },
+
+    productListItem: { 
+        paddingVertical: 15, 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#F0F2F5' 
+    },
+
+    productListName: { 
+        fontSize: 16, 
+        color: '#1A1A1A' 
+    },
+    productListStock: { 
+        fontSize: 13, 
+        color: '#828489', 
+        marginTop: 4 
+    },
+
+    cancelBtn: { 
+        marginTop: 20, 
+        padding: 15, 
+        alignItems: 'center', 
+        backgroundColor: '#F0F2F5', 
+        borderRadius: 10 
+    },
+
+    cancelBtnText: { 
+        fontWeight: 'bold', 
+        color: '#1A1A1A' 
+    },
+
+    clearBtn: { 
+        marginTop: 10, 
+        padding: 15, 
+        alignItems: 'center' 
+    },
+
+    clearBtnText: { 
+        color: '#EF4444', 
         fontWeight: 'bold' 
     }
 });

@@ -40,8 +40,8 @@ export const ExpenseDetailModal = ({ visible, expense, onClose }: Props) => {
                         />
                         <DetailRow 
                             label="Produto vinculado" 
-                            value="Nescauzinho" 
-                            isLink 
+                            value={expense.linkedProductId ? expense.linkedProductId : 'Nenhum'}
+                            isLink={!!expense.linkedProductName}
                         />
                         
                         <View style={styles.divider} />
@@ -52,13 +52,13 @@ export const ExpenseDetailModal = ({ visible, expense, onClose }: Props) => {
                         </View>
                     </View>
 
-                    {expense.type === 'merchandise' && (
+                    {expense.type === 'merchandise' && expense.linkedProductName && (
                         <View style={styles.stockBadge}>
                             <View style={styles.stockIcon}><Package size={18} color="#4963E4" /></View>
 
                             <View style={styles.stockInfo}>
                                 <Text style={styles.stockTitle}>Estoque atualizado</Text>
-                                <Text style={styles.stockDesc}>+{expense.quantity} unidades adicionadas ao produto "Nescauzinho"</Text>
+                                <Text style={styles.stockDesc}>+{expense.quantity} unidades adicionadas ao produto "{expense.linkedProductName}"</Text>
                             </View>
                         </View>
                     )}

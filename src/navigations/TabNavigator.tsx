@@ -11,6 +11,7 @@ import Productos from "../screens/Products/Productos";
 import Profile from "../screens/Profile/Perfil";
 import HomeScreen from "../screens/Homes/Home";
 import ExpenseList from "../screens/Expenses/ExpenseList";
+import Reports from "../screens/Reportss/Reports";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -20,6 +21,7 @@ function HomeStack() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="HomeMain" component={HomeScreen} />
             <Stack.Screen name="ExpensesList" component={ExpenseList} />
+            <Stack.Screen name="Reports" component={Reports} />
         </Stack.Navigator>
     );
 }

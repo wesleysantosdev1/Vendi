@@ -26,7 +26,7 @@ export default function HomeScreen() {
 
                 <View style={styles.header}>
                     <Text style={styles.greeting}>Olá, Wesley! 👋</Text>
-                    <Text style={styles.date}>Quarta-feira, 11 de Fevereiro</Text>
+                    <Text style={styles.date}>Sexta-feira, 06 de Março</Text>
                 </View>
 
                 <View style={styles.row}>
@@ -59,6 +59,7 @@ export default function HomeScreen() {
                         Icon={BarChart3} 
                         color="#10B981" 
                         bgColor="#D1FAE5" 
+                        onPress={() => navigation.navigate('Reports' as never)}
                     />
                     <QuickAction 
                         label="Vendas" 

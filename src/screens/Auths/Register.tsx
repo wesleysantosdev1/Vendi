@@ -36,32 +36,36 @@ export default function Register(){
             </View>
 
             <View style={styles.viewInputs}>
-                <User size={20} color="#888" />
+                <User size={20} color="#000" />
                 <TextInput 
+                placeholderTextColor="#000"
                 placeholder="Nome completo"
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewInputs}>
-                <Mail size={20} color="#888" />
+                <Mail size={20} color="#000" />
                 <TextInput 
+                placeholderTextColor="#000"
                 placeholder="E-mail"
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewInputs}>
-                <Lock size={20} color="#888" />
+                <Lock size={20} color="#000" />
                 <TextInput 
+                placeholderTextColor="#000"
                 placeholder="Senha"
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewInputs}>
-                <Lock size={20} color="#888" />
+                <Lock size={20} color="#000" />
                 <TextInput 
+                placeholderTextColor="#000"
                 placeholder="Confirmar senha"
                 style={styles.Inputs}
                 />

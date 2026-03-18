@@ -27,17 +27,19 @@ export default function Login(){
             </View>
 
             <View style={styles.viewInputs}>
-                <Mail size={20} color="#888" />
+                <Mail size={20} color="#000" />
                 <TextInput 
                 placeholder="E-mail"
+                placeholderTextColor="#000"
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewInputs}>
-                <Lock size={20} color="#888" />
+                <Lock size={20} color="#000" />
                 <TextInput 
                 placeholder="Senha"
+                placeholderTextColor="#000"
                 style={styles.Inputs}
                 />
             </View>

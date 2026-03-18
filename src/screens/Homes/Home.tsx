@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { TabParamList } from "../../navigations/types";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 import { SummaryCard } from "../../components/SummaryCard";
@@ -19,14 +20,27 @@ type NavigationProp = BottomTabNavigationProp<
 
 export default function HomeScreen() {
     const navigation = useNavigation<NavigationProp>();
+    const { user } = useAuth();
+
+    function formatDate() {
+        const date = new Date();
+
+        const formatted = date.toLocaleDateString("pt-BR", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long"
+        });
+
+        return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    }
 
     return (
         <SafeAreaProvider style={styles.safe}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
 
                 <View style={styles.header}>
-                    <Text style={styles.greeting}>Olá, Wesley! 👋</Text>
-                    <Text style={styles.date}>Sexta-feira, 06 de Março</Text>
+                    <Text style={styles.greeting}>Olá, {user?.name || "Usuário"}! 👋</Text>
+                    <Text style={styles.date}>{formatDate()}</Text>
                 </View>
 
                 <View style={styles.row}>

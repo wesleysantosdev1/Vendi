@@ -1,4 +1,6 @@
 module.exports = {
-  root: true,
+  "rules": {
+    "no-alert": "off"
+  },
   extends: '@react-native',
 };

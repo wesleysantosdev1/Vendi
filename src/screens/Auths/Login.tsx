@@ -6,6 +6,11 @@ import { RootStackParamList } from "../../navigations/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { loginRequest } from "../../services/authService";
+
+
 export default function Login(){
 
     type NavigationProp = NativeStackNavigationProp<
@@ -14,6 +19,33 @@ export default function Login(){
     >
 
     const navigation = useNavigation<NavigationProp>();
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const { signIn } = useAuth();
+
+    async function handleLogin() {
+        try {
+            if (!email || !password) {
+                alert("Preencha todos os campos");
+                return;
+            }
+
+            const { user, token } = await loginRequest(email, password);
+
+            signIn(user, token);
+
+            navigation.navigate("Home");
+
+        } catch (error: any) {
+            console.log(error.response?.data);
+
+            alert(
+                error.response?.data?.error ||
+                "Erro ao fazer login"
+            );
+        }
+    }
 
     return(
         <View style={styles.container}>
@@ -31,6 +63,8 @@ export default function Login(){
                 <TextInput 
                 placeholder="E-mail"
                 placeholderTextColor="#000"
+                value={email}
+                onChangeText={setEmail}
                 style={styles.Inputs}
                 />
             </View>
@@ -40,13 +74,16 @@ export default function Login(){
                 <TextInput 
                 placeholder="Senha"
                 placeholderTextColor="#000"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewButton}>
                 <TouchableOpacity 
-                onPress={() => navigation.navigate("Home")}
+                onPress={handleLogin}
                 style={styles.button}>
                     <Text style={styles.Text3}>Entrar</Text>
                 </TouchableOpacity>

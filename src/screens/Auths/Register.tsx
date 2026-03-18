@@ -1,9 +1,11 @@
-import React from "react";
+import React, {useState} from "react";
 import {View, Text, StyleSheet, Image, TextInput, Platform, TouchableOpacity } from "react-native";
 import { Mail, Lock, User, ArrowLeft } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../navigations/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import { registerRequest } from "../../services/authService";
 
 export default function Register(){
 
@@ -13,6 +15,39 @@ export default function Register(){
     >
 
     const navigation = useNavigation<NavigationProp>();
+
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    async function handleRegister() {
+        try {
+            if (!name || !email || !password || !confirmPassword) {
+                alert("Preencha todos os campos");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("As senhas não coincidem");
+                return;
+            }
+
+            await registerRequest(name, email, password);
+
+            alert("Conta criada com sucesso!");
+
+            navigation.navigate("Login");
+
+        } catch (error: any) {
+            console.log(error.response?.data);
+
+            alert(
+                error.response?.data?.error ||
+                "Erro ao criar conta"
+            );
+        }
+    }
 
     return(
         <View style={styles.container}>
@@ -41,6 +76,8 @@ export default function Register(){
                 placeholderTextColor="#000"
                 placeholder="Nome completo"
                 style={styles.Inputs}
+                value={name}
+                onChangeText={setName}
                 />
             </View>
 
@@ -49,6 +86,8 @@ export default function Register(){
                 <TextInput 
                 placeholderTextColor="#000"
                 placeholder="E-mail"
+                value={email}
+                onChangeText={setEmail}
                 style={styles.Inputs}
                 />
             </View>
@@ -58,6 +97,9 @@ export default function Register(){
                 <TextInput 
                 placeholderTextColor="#000"
                 placeholder="Senha"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
                 style={styles.Inputs}
                 />
             </View>
@@ -67,13 +109,16 @@ export default function Register(){
                 <TextInput 
                 placeholderTextColor="#000"
                 placeholder="Confirmar senha"
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
                 style={styles.Inputs}
                 />
             </View>
 
             <View style={styles.viewButton}>
                 <TouchableOpacity 
-                onPress={() => navigation.navigate("Home")}
+                onPress={handleRegister}
                 style={styles.button}>
                     <Text style={styles.Text3}>Criar conta</Text>
                 </TouchableOpacity>

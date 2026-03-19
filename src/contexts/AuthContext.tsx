@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext } from "react";
+import { setAuthToken } from "../services/api";
 
 type User = {
     id: string;
@@ -22,11 +23,15 @@ export function AuthProvider({ children }: any) {
     function signIn(userData: User, userToken: string) {
         setUser(userData);
         setToken(userToken);
+
+        setAuthToken(userToken);
     }
 
     function signOut() {
         setUser(null);
         setToken(null);
+
+        setAuthToken(null);
     }
 
     return (

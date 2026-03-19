@@ -31,9 +31,9 @@ export default function Login(){
                 return;
             }
 
-            const { user, token } = await loginRequest(email, password);
+            const data  = await loginRequest(email, password);
 
-            signIn(user, token);
+            signIn(data.user, data.token);
 
             navigation.navigate("Home");
 

@@ -7,7 +7,7 @@ import { ProductItem } from "./components/ProductItem";
 import { ProductModal } from "./components/ProductModal";
 
 export default function Productos(){
-    const { products, addProduct, updateProduct } = useProductManager();
+    const { products, addProduct, updateProduct, loading } = useProductManager();
     const [modalVisible, setModalVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -21,6 +21,16 @@ export default function Productos(){
         else addProduct(data);
     }; 
 
+    if (loading) {
+        return (
+            <SafeAreaProvider style={styles.safe}>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text>Carregando produtos...</Text>
+                </View>
+            </SafeAreaProvider>
+        );
+    }
+
     return(
         <SafeAreaProvider style={styles.safe}> 
             <View style={styles.header}>
@@ -31,8 +41,18 @@ export default function Productos(){
             <FlatList
                 data={products}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <ProductItem item={item} onEdit={handleOpenEdit} />}
-                contentContainerStyle={styles.list}
+                renderItem={({ item }) => (
+                    <ProductItem item={item} onEdit={handleOpenEdit} />
+                )}
+                contentContainerStyle={[
+                    styles.list,
+                    products.length === 0 && { flex: 1, justifyContent: 'center', alignItems: 'center' }
+                ]}
+                ListEmptyComponent={() => (
+                    <Text style={{ color: '#828489' }}>
+                        Nenhum produto cadastrado
+                    </Text>
+                )}
             />
 
             <TouchableOpacity 

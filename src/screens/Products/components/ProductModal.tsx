@@ -47,13 +47,15 @@ export const ProductModal = ({ visible, onClose, onSave, productToEdit }: Props)
                     </View>
 
                     <TextInput 
-                    placeholder="Nome do produto" 
+                    placeholder="Nome do produto"
+                    placeholderTextColor="#000"
                     style={styles.input} value={name} 
                     onChangeText={setName} 
                     />
                     
                     <TextInput 
                     placeholder="Valor (R$)" 
+                    placeholderTextColor="#000"
                     style={styles.input} 
                     keyboardType="numeric" 
                     value={price} 
@@ -61,7 +63,8 @@ export const ProductModal = ({ visible, onClose, onSave, productToEdit }: Props)
                     />
 
                     <TextInput 
-                    placeholder="Quantidade em estoque" 
+                    placeholder="Quantidade em estoque"
+                    placeholderTextColor="#000"
                     style={styles.input} 
                     keyboardType="numeric" 
                     value={stock} 

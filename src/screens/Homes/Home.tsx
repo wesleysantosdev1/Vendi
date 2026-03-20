@@ -1,17 +1,19 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from "react-native";
 import { Plus, TrendingDown, BarChart3, List } from "lucide-react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { TabParamList } from "../../navigations/types";
 import { useAuth } from "../../contexts/AuthContext";
 
+import { getSales } from "../../services/saleService";
 
 import { SummaryCard } from "../../components/SummaryCard";
 import { TotalSalesBanner } from "../../components/TotalSalesBanner";
 import { QuickAction } from "../../components/QuickAction";
 import { RecentSale } from "../../components/RecentSale";
+import { getDashboardSummary } from "../../services/dashboardService";
 
 type NavigationProp = BottomTabNavigationProp<
     TabParamList,
@@ -21,6 +23,50 @@ type NavigationProp = BottomTabNavigationProp<
 export default function HomeScreen() {
     const navigation = useNavigation<NavigationProp>();
     const { user } = useAuth();
+    const [totalCount, setTotalCount] = useState(0);
+    const [recentSales, setRecentSales] = useState<any[]>([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [summary, setSummary] = useState({
+        today: 0,
+        week: 0, 
+        month: 0
+    });
+
+    const loadData = async () => {
+        setRefreshing(true);
+        try {
+            const [salesData, summaryData] = await Promise.all([
+                getSales(),
+                getDashboardSummary()
+            ]);
+
+            setTotalCount(salesData.length);
+
+            setSummary({
+                today: summaryData.today,
+                week: summaryData.week, 
+                month: summaryData.month
+            })
+
+            const latestFour = salesData.slice(0, 4).map((sale: any) => ({
+                id: sale.id,
+                name: sale.customerName,
+                time: new Date(sale.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                value: `R$ ${sale.total.toFixed(2)}`
+            }));
+            setRecentSales(latestFour);
+        } catch (error) {
+            console.error("Erro ao carregar vendas recentes", error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
 
     function formatDate() {
         const date = new Date();
@@ -36,7 +82,13 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaProvider style={styles.safe}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+            <ScrollView 
+                showsVerticalScrollIndicator={false} 
+                contentContainerStyle={styles.container}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={loadData} />
+                }
+            >
 
                 <View style={styles.header}>
                     <Text style={styles.greeting}>Olá, {user?.name || "Usuário"}! 👋</Text>
@@ -44,12 +96,26 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.row}>
-                    <SummaryCard label="HOJE" value="R$ 450,00" color="#3653E2" />
-                    <SummaryCard label="SEMANA" value="R$ 2.340,00" color="#21C45D" />
-                    <SummaryCard label="MÊS" value="R$ 8.750,00" color="#F59F0A" />
+                    <SummaryCard 
+                        label="HOJE" 
+                        value={`R$ ${summary.today.toFixed(2)}`}
+                        color="#3653E2" 
+                    />
+
+                    <SummaryCard 
+                        label="SEMANA" 
+                        value={`R$ ${summary.week.toFixed(2)}`}
+                        color="#21C45D" 
+                    />
+
+                    <SummaryCard 
+                        label="MÊS" 
+                        value={`R$ ${summary.month.toFixed(2)}`}
+                        color="#F59F0A" 
+                    />
                 </View>
 
-                <TotalSalesBanner total={142} />
+                <TotalSalesBanner total={totalCount} />
 
                 <Text style={styles.sectionTitle}>Atalhos rápidos</Text>
                 <View style={styles.row}>
@@ -85,9 +151,20 @@ export default function HomeScreen() {
                 </View>
 
                 <Text style={styles.sectionTitle}>Vendas recentes</Text>
-                <RecentSale name="Maria Silva" time="Hoje, 14:30" value="R$ 120,00" />
-                <RecentSale name="Carlos Santos" time="Hoje, 11:15" value="R$ 85,00" />
-                <RecentSale name="Ana Oliveira" time="Ontem, 16:45" value="R$ 245,00" />
+                {recentSales.length > 0 ? (
+                    recentSales.map(sale => (
+                        <RecentSale 
+                            key={sale.id}
+                            name={sale.name} 
+                            time={sale.time} 
+                            value={sale.value}
+                        />
+                    ))
+                ) : (
+                    <Text style={styles.emptyText}>Nenhuma venda recente.</Text>
+                )
+
+                }
 
             </ScrollView>
         </SafeAreaProvider>
@@ -134,4 +211,11 @@ const styles = StyleSheet.create({
         marginTop: 25, 
         marginBottom: 15 
     },
+
+    emptyText: {
+        color: '#828489',
+        textAlign: 'center',
+        marginTop: 10,
+        fontStyle: 'italic'
+    }
 });

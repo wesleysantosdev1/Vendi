@@ -9,9 +9,7 @@ export default function SaleDetails() {
     const navigation = useNavigation();
     const route = useRoute();
 
-    const { sale } = (route.params as any) || { 
-        sale: { name: 'Maria Silva', date: '08/02/2026', items: 3, value: '120,00' } 
-    };
+    const { sale } = route.params as any;
 
     return (
         <SafeAreaProvider style={styles.safe}>
@@ -47,27 +45,23 @@ export default function SaleDetails() {
 
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>Total</Text>
-                        <Text style={styles.totalValue}>R$ {sale.value}</Text>
+                        <Text style={styles.totalValue}>R$ {sale.total.toFixed(2)}</Text>
                     </View>
                 </View>
 
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Produtos</Text>
                     
-                    <View style={styles.productRow}>
-                        <Text style={styles.productName}>Camiseta Básica x1</Text>
-                        <Text style={styles.productPrice}>R$ 40,00</Text>
-                    </View>
-
-                    <View style={styles.productRow}>
-                        <Text style={styles.productName}>Calça Jeans x1</Text>
-                        <Text style={styles.productPrice}>R$ 55,00</Text>
-                    </View>
-
-                    <View style={styles.productRow}>
-                        <Text style={styles.productName}>Tênis Esportivo x1</Text>
-                        <Text style={styles.productPrice}>R$ 70,00</Text>
-                    </View>
+                    {sale.items.map((item: any, index: number) => (
+                        <View key={index} style={styles.productRow}>
+                            <Text style={styles.productName}>
+                                {item.product.name} x{item.quantity}
+                            </Text>
+                            <Text style={styles.productPrice}>
+                                R$ {(item.price * item.quantity).toFixed(2)}
+                            </Text>
+                        </View>
+                    ))}
                 </View>
 
             </ScrollView>

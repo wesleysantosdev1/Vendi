@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {View, Text, StyleSheet, FlatList, TextInput } from 'react-native';
 import { Search } from 'lucide-react-native';
 import { SaleItem } from "./components/SaleItem";
@@ -7,6 +7,8 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigations/types";
 
+import { getSales } from "../../services/saleService";
+import { Sale } from "../../types/sale";
 
 type NavigationProp = NativeStackNavigationProp<
     RootStackParamList,
@@ -15,15 +17,25 @@ type NavigationProp = NativeStackNavigationProp<
 
 export default function SalesList(){
     const navigation = useNavigation<NavigationProp>();
+    const [sales, setSales] = useState<Sale[]>([]);
 
-    const [sales, _setSales] = useState([
-        { id: '1', name: 'Maria Silva', date: '08/02/2026', items: 3, value: '120,00' },
-        { id: '2', name: 'Carlos Santos', date: '08/02/2026', items: 1, value: '85,00' },
-        { id: '3', name: 'Maria Silva', date: '08/02/2026', items: 3, value: '120,00' },
-        { id: '4', name: 'Carlos Santos', date: '08/02/2026', items: 1, value: '85,00' },
-        { id: '5', name: 'Maria Silva', date: '08/02/2026', items: 3, value: '120,00' },
-        { id: '6', name: 'Carlos Santos', date: '08/02/2026', items: 1, value: '85,00' },
-    ]);
+    useEffect(() => {
+        async function loadSales() {
+            const data = await getSales();
+
+            const formatted = data.map((sale: any) => ({
+                id: sale.id,
+                name: sale.customerName,
+                date: new Date(sale.createdAt).toLocaleDateString(),
+                items: sale.items.length,
+                value: sale.total.toFixed(2)
+            }));
+
+            setSales(formatted);
+        }
+
+        loadSales();
+    }, [])
 
     return(
         <SafeAreaProvider style={styles.container}>

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSaleManager } from "./hooks/useSaleManager";
@@ -8,13 +8,9 @@ import { ProductChip } from "./components/ProductChip";
 import { OrderSummary } from "./components/OrderSummary";
 import { InputVenda } from "./components/InputVenda";
 
-const availableProducts = [
-    { id: '1', name: "Camiseta Básica", price: 39.90 },
-    { id: '2', name: "Calça Jeans", price: 89.90 },
-    { id: '3', name: "Tênis Esportivo", price: 149.90 },
-    { id: '4', name: "Boné Casual", price: 29.90 },
-];
-
+import { getProductsRequest } from "../../services/productService";
+import { createSale } from "../../services/saleService";
+import { Product } from "../../types/product"
 
 export default function AddSale(){
     const { 
@@ -26,6 +22,35 @@ export default function AddSale(){
 
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
+    const [products, setProducts] = useState<Product[]>([]);
+
+    useEffect(() => {
+        async function loadProducts() {
+            const data = await getProductsRequest();
+            setProducts(data);
+        }
+
+        loadProducts();
+    },[])
+
+    const handleSave = async () => {
+        if (!name || selectedItems.length === 0) return;
+
+        const items = selectedItems.map(item => ({
+            products: item.id,
+            quantity: 1
+        }));
+
+        await createSale({
+            customer: {
+                name,
+                phone
+            },
+            items
+        }); 
+
+        alert("Venda Salva!")
+    }
 
     return(
         <SafeAreaProvider style={styles.safe}> 
@@ -49,13 +74,13 @@ export default function AddSale(){
 
                 <Text style={styles.subtitle}>Adicionar produtos</Text>
                 <View style={styles.productGrid}>
-                {availableProducts.map(p => (
-                    <ProductChip 
-                    key={p.id} 
-                    label={p.name} 
-                    onPress={() => addItem(p)} 
-                    />
-                ))}
+                    {products.map(p => (
+                        <ProductChip 
+                        key={p.id} 
+                        label={p.name} 
+                        onPress={() => addItem(p)} 
+                        />
+                    ))}
                 </View>
 
                 {selectedItems.length > 0 && (  
@@ -66,7 +91,10 @@ export default function AddSale(){
                 />
                 )}
 
-                <TouchableOpacity style={styles.btnSave}>
+                <TouchableOpacity 
+                style={styles.btnSave} 
+                onPress={handleSave}
+                >
                     <Text style={styles.btnText}>Salvar Venda</Text>
                 </TouchableOpacity>
             </ScrollView>

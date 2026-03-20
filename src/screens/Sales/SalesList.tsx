@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useCallback} from "react";
 import {View, Text, StyleSheet, FlatList, TextInput } from 'react-native';
 import { Search } from 'lucide-react-native';
 import { SaleItem } from "./components/SaleItem";
@@ -9,6 +9,8 @@ import { RootStackParamList } from "../../navigations/types";
 
 import { getSales } from "../../services/saleService";
 import { Sale } from "../../types/sale";
+import { RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 type NavigationProp = NativeStackNavigationProp<
     RootStackParamList,
@@ -18,24 +20,32 @@ type NavigationProp = NativeStackNavigationProp<
 export default function SalesList(){
     const navigation = useNavigation<NavigationProp>();
     const [sales, setSales] = useState<Sale[]>([]);
+    const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        async function loadSales() {
+    async function loadSales() {
+        setRefreshing(true);
+        try {
             const data = await getSales();
-
             const formatted = data.map((sale: any) => ({
                 id: sale.id,
                 name: sale.customerName,
-                date: new Date(sale.createdAt).toLocaleDateString(),
-                items: sale.items.length,
-                value: sale.total.toFixed(2)
+                phone: sale.customerPhone,
+                date: new Date(sale.createdAt).toLocaleDateString('pt-BR'),
+                items: sale.items.reduce((acc: number, item: any) => acc + item.quantity, 0),
+                value: sale.total, 
+                fullItems: sale.items 
             }));
-
             setSales(formatted);
+        } finally {
+            setRefreshing(false);
         }
+    }
 
-        loadSales();
-    }, [])
+    useFocusEffect(
+        useCallback(() => {
+            loadSales();
+        }, [])
+    );
 
     return(
         <SafeAreaProvider style={styles.container}>
@@ -55,12 +65,15 @@ export default function SalesList(){
             <FlatList
                 data={sales}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => 
-                    <SaleItem data={item} 
-                        onPress={() => 
-                            navigation.navigate('SaleDetails', { sale: item })
-                        }
-                    />}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={loadSales} />
+                }
+                renderItem={({ item }) => (
+                    <SaleItem 
+                        data={{...item, value: item.value.toFixed(2)}} 
+                        onPress={() => navigation.navigate('SaleDetails', { sale: item })} 
+                    />
+                )}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />

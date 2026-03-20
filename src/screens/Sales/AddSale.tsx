@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, {useState, useEffect, useCallback} from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useSaleManager } from "./hooks/useSaleManager";
 import { User, Phone } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { ProductChip } from "./components/ProductChip";
 import { OrderSummary } from "./components/OrderSummary";
@@ -10,19 +11,45 @@ import { InputVenda } from "./components/InputVenda";
 
 import { getProductsRequest } from "../../services/productService";
 import { createSale } from "../../services/saleService";
-import { Product } from "../../types/product"
+
+
+type Product = {
+    id: string;
+    name: string;
+    price: number;
+};
+
 
 export default function AddSale(){
     const { 
         selectedItems, 
         addItem, 
         removeItem, 
-        totalValue
+        totalValue,
+        clearSale
     } = useSaleManager();
 
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [products, setProducts] = useState<Product[]>([]);
+
+    const maskPhone = (value: string) => {
+        return value 
+            .replace(/\D/g, "")
+            .replace(/^(\d{2})(\d)/g, "($1) $2")
+            .replace(/(\d{5})(\d)/, "$1-$2")
+            .substring(0, 15);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            async function load() {
+                const data = await getProductsRequest();
+                setProducts(data);
+            }
+            load();
+        }, [])
+    );
 
     useEffect(() => {
         async function loadProducts() {
@@ -34,23 +61,31 @@ export default function AddSale(){
     },[])
 
     const handleSave = async () => {
-        if (!name || selectedItems.length === 0) return;
+        if (!name || selectedItems.length === 0) {
+            Alert.alert("Erro", "Preencha o nome e adicione itens.");
+            return;
+        }
 
         const items = selectedItems.map(item => ({
-            products: item.id,
-            quantity: 1
+            productId: item.id,
+            quantity: item.quantity
         }));
 
-        await createSale({
-            customer: {
-                name,
-                phone
-            },
-            items
-        }); 
+        try {
+            await createSale({
+                customer: { name, phone },
+                items
+            });
+            Alert.alert("Sucesso", "Venda Salva!");
 
-        alert("Venda Salva!")
-    }
+            setName("");
+            setPhone("");
+            clearSale();
+        } catch (error) {
+            console.log("Erro ao salvar venda:", error);
+            Alert.alert("Erro", "Falha ao salvar venda.");
+        }
+    };
 
     return(
         <SafeAreaProvider style={styles.safe}> 
@@ -68,7 +103,7 @@ export default function AddSale(){
                     Icon={Phone} 
                     keyboardType="phone-pad"
                     value={phone}
-                    onChangeText={setPhone}
+                    onChangeText={(t) => setPhone(maskPhone(t))}
                 />
                 
 

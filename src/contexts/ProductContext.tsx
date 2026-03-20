@@ -16,10 +16,7 @@ interface ProductContextData {
 const ProductContext = createContext<ProductContextData>({} as ProductContextData);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
-    const [products, setProducts ] = useState<Product[]>([
-        { id: '1', name: "Camiseta Básica", price: 39.90, stock: 25 },
-        { id: '2', name: "Calça Jeans", price: 89.90, stock: 12 },
-    ]); 
+    const [products, setProducts ] = useState<Product[]>([]); 
 
     const addProduct = (newProduct: Omit<Product, 'id'>) => {
         const product = { ...newProduct, id: Math.random().toString() };

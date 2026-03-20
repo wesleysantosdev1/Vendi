@@ -8,17 +8,14 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 export default function SaleDetails() {
     const navigation = useNavigation();
     const route = useRoute();
-
     const { sale } = route.params as any;
+
+    const total = Number(sale.value) || 0;
 
     return (
         <SafeAreaProvider style={styles.safe}>
             <ScrollView contentContainerStyle={styles.container}>
-
-                <TouchableOpacity 
-                    style={styles.backButton} 
-                    onPress={() => navigation.goBack()}
-                >
+                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <ArrowLeft size={16} color="#4963E4" />
                     <Text style={styles.backText}>Voltar</Text>
                 </TouchableOpacity>
@@ -26,9 +23,16 @@ export default function SaleDetails() {
                 <Text style={styles.title}>Detalhes da Venda</Text>
 
                 <View style={styles.card}>
+                    {/* Linha do Cliente */}
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Cliente</Text>
                         <Text style={styles.infoValueBold}>{sale.name}</Text>
+                    </View>
+
+                    {/* Linha do Telefone (NOVO) */}
+                    <View style={styles.infoRow}>
+                        <Text style={styles.label}>Telefone</Text>
+                        <Text style={styles.infoValue}>{sale.phone || 'Não informado'}</Text>
                     </View>
                     
                     <View style={styles.infoRow}>
@@ -38,32 +42,31 @@ export default function SaleDetails() {
 
                     <View style={styles.infoRow}>
                         <Text style={styles.label}>Itens</Text>
-                        <Text style={styles.infoValue}>{sale.items}</Text>
+                        <Text style={styles.infoValue}>{sale.items} itens</Text>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>Total</Text>
-                        <Text style={styles.totalValue}>R$ {sale.total.toFixed(2)}</Text>
+                        <Text style={styles.totalValue}>R$ {total.toFixed(2)}</Text>
                     </View>
                 </View>
 
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Produtos</Text>
-                    
-                    {sale.items.map((item: any, index: number) => (
+                    {sale.fullItems?.map((item: any, index: number) => (
                         <View key={index} style={styles.productRow}>
-                            <Text style={styles.productName}>
-                                {item.product.name} x{item.quantity}
-                            </Text>
+                            <View>
+                                <Text style={styles.productName}>{item.product.name}</Text>
+                                <Text style={styles.label}>{item.quantity}x R$ {item.price.toFixed(2)}</Text>
+                            </View>
                             <Text style={styles.productPrice}>
                                 R$ {(item.price * item.quantity).toFixed(2)}
                             </Text>
                         </View>
                     ))}
                 </View>
-
             </ScrollView>
         </SafeAreaProvider>
     );

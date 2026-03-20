@@ -6,12 +6,28 @@ interface Product {
     price: number; 
 }
 
+interface SelectedItem extends Product {
+    quantity: number;
+}
+
+
 export function useSaleManager() {
-    const [selectedItems, setSelectedItems] = useState<Product[]>([]);
+    const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
 
     const addItem = (product: Product) => {
-        const newItem = { ...product, id: Math.random().toString() };
-        setSelectedItems((prev) => [...prev, newItem]);
+        setSelectedItems((prev) => {
+            const existing = prev.find(item => item.id === product.id);
+            if (existing) {
+                // Se já existe, aumenta a quantidade
+                return prev.map(item => 
+                    item.id === product.id 
+                    ? { ...item, quantity: item.quantity + 1 } 
+                    : item
+                );
+            }
+            // Se é novo, adiciona com quantidade 1
+            return [...prev, { ...product, quantity: 1 }];
+        });
     };
 
     const removeItem = (id: string) => {
@@ -19,8 +35,8 @@ export function useSaleManager() {
     };
 
     const totalValue = useMemo(() => {
-        return selectedItems.reduce((acc, curr) => acc + curr.price, 0);
-    }, [selectedItems]);
+        return selectedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    }, [selectedItems])
 
     const clearSale = () => setSelectedItems([]);
 

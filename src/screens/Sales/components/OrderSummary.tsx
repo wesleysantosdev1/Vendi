@@ -16,10 +16,10 @@ export const OrderSummary = ({ items, onRemove, total }: Props) => (
             <View key={item.id} style={styles.itemRow}>
                 <View>
                     <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemSub}>1x R$ {item.price.toFixed(2)}</Text>
+                    <Text style={styles.itemSub}>{item.quantity}x R$ {item.price.toFixed(2)}</Text>
                 </View>
                 <View style={styles.right}>
-                    <Text style={styles.itemPrice}>R$ {item.price.toFixed(2)}</Text>
+                    <Text style={styles.itemPrice}>R$ {(item.price * item.quantity).toFixed(2)}</Text>
                     <TouchableOpacity onPress={() => onRemove(item.id)}>
                         <Trash2 size={18} color="#EF4444" />
                     </TouchableOpacity>

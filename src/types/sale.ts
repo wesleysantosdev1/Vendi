@@ -3,5 +3,5 @@ export type Sale = {
     name: string;
     date: string;
     items: number;
-    value: string;
+    value: number;
 };

@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
-import { useExpense } from '../../contexts/ExpenseContext';
 import { useProducts, Product } from '../../contexts/ProductContext';
+import { createExpenseRequest } from '../../services/expenseService';
 
 export default function AddExpense({ navigation }: any) {
-    const { addExpense } = useExpense();
     const { products } = useProducts();
     const [type, setType] = useState<'merchandise' | 'operational'>('merchandise');
     const [description, setDescription] = useState('');
@@ -31,24 +30,25 @@ export default function AddExpense({ navigation }: any) {
     }
 
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!description || !value || !date) {
             Alert.alert("Erro", "Preencha os campos obrigatórios");
             return;
         }
 
-        addExpense({
-            type,
-            description,
-            value: parseFloat(value.replace(',', '.')),
-            date,
-            quantity: quantity ? parseInt(quantity) : 0,
-            category: type === 'merchandise' ? 'Mercadoria' : 'Operacional',
-            linkedProductId: selectedProduct ? selectedProduct.id : undefined,
-            linkedProductName: selectedProduct ? selectedProduct.name : undefined
-        });
-
-        navigation.goBack();
+        try {
+            await createExpenseRequest({
+                description,
+                value: parseFloat(value.replace(',', '.')),
+                type,
+                date
+            });
+            
+            Alert.alert("Sucesso", "Gasto registrado!");
+            navigation.goBack();
+        } catch  {
+            Alert.alert("Erro", "Não foi possível salvar no servidor.");
+        }
     };
 
     return (

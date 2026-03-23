@@ -1,8 +1,10 @@
-import React, {useState} from "react";
+import React, {useState, useCallback} from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { TrendingDown, TrendingUp, DollarSign } from 'lucide-react-native'
+//import { TrendingDown, TrendingUp, DollarSign } from 'lucide-react-native'
 import { BarChart } from 'react-native-gifted-charts'
+import { api } from "../../services/api";
 
 
 export default function Reports(){
@@ -38,6 +40,26 @@ export default function Reports(){
         if (activeTab === 'Semana') return dataSemana;
         return dataMes
     };
+
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<any>(null);
+
+    const loadReports = async () => {
+        try {
+            const response = await api.get('/reports/daily');
+            setStats(response.data);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadReports();
+        }, [])
+    );
+
+    if (loading) return <Text>Carregando...</Text>;
 
     const renderTooltip = (item: any, index: number) => {
         const isVenda = index % 2 === 0;
@@ -119,33 +141,21 @@ export default function Reports(){
                 <Text style={styles.sectionTitle}>Resultado do mês</Text>
                 
                 <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: '#FEE2E2' }]}>
-                        <TrendingDown size={24} color="#EF4444" />
-                    </View>
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Total gasto (compras)</Text>
-                        <Text style={[styles.resultValue, { color: '#EF4444' }]}>R$ 1.358,34</Text>
-                    </View>
+                    <Text style={[styles.resultValue, { color: '#EF4444' }]}>
+                        R$ {stats?.summary.totalGasto.toFixed(2)}
+                    </Text>
+                </View>
+                
+                <View style={styles.resultCard}>
+                    <Text style={[styles.resultValue, { color: '#10B981' }]}>
+                        R$ {stats?.summary.totalVendido.toFixed(2)}
+                    </Text>
                 </View>
 
                 <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: '#E0F2FE' }]}>
-                        <TrendingUp size={24} color="#10B981" />
-                    </View>
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Total vendido</Text>
-                        <Text style={[styles.resultValue, { color: '#10B981' }]}>R$ 8.750,00</Text>
-                    </View>
-                </View>
-
-                <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: '#EEF2FF' }]}>
-                        <DollarSign size={24} color="#4963E4" />
-                    </View>
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Lucro (vendas - gastos)</Text>
-                        <Text style={[styles.resultValue, { color: '#4963E4' }]}>R$ 7.391,66</Text>
-                    </View>
+                    <Text style={[styles.resultValue, { color: '#4963E4' }]}>
+                        R$ {stats?.summary.lucro.toFixed(2)}
+                    </Text>
                 </View>
 
             </ScrollView>

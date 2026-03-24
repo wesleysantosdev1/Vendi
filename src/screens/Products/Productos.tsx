@@ -1,25 +1,47 @@
 import React, {useState} from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native"; 
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Alert } from "react-native"; 
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Plus } from 'lucide-react-native';
 import { useProductManager, Product } from "./hooks/useProductManager";
 import { ProductItem } from "./components/ProductItem";
 import { ProductModal } from "./components/ProductModal";
+import { deleteProductRequest } from "../../services/productService";
 
 export default function Productos(){
-    const { products, addProduct, updateProduct, loading } = useProductManager();
+    const { products, addProduct, updateProduct, loading, loadProducts } = useProductManager();
     const [modalVisible, setModalVisible] = useState(false);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
     const handleOpenEdit = (product: Product) => {
         setEditingProduct(product);
         setModalVisible(true);
     };
 
+    const handleOpenDelete = (product: Product) => {
+        setProductToDelete(product);
+        setDeleteModalVisible(true);
+    };
+
     const handleSave = (data: any) => {
         if (editingProduct) updateProduct(data);
         else addProduct(data);
-    }; 
+    };
+    
+    const confirmDelete = async () => {
+        if (!productToDelete) return;
+
+        try {
+            await deleteProductRequest(productToDelete.id);
+            Alert.alert("Sucesso", "Produto removido com sucesso!");
+            setDeleteModalVisible(false);
+            loadProducts(); 
+        } catch (error) {
+            console.log(error, "Erro aqui")
+            Alert.alert("Erro", "Não foi possível excluir o produto.");
+        }
+    };
 
     if (loading) {
         return (
@@ -42,7 +64,7 @@ export default function Productos(){
                 data={products}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <ProductItem item={item} onEdit={handleOpenEdit} />
+                    <ProductItem item={item} onEdit={handleOpenEdit} onDelete={handleOpenDelete} />
                 )}
                 contentContainerStyle={[
                     styles.list,
@@ -68,6 +90,41 @@ export default function Productos(){
                 onSave={handleSave}
                 productToEdit={editingProduct}
             />
+
+            <Modal
+                visible={deleteModalVisible}
+                transparent
+                animationType="fade"
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.confirmCard}>
+                        <View style={styles.warningIcon}>
+                            <Text style={{fontSize: 24}}>⚠️</Text>
+                        </View>
+                        <Text style={styles.confirmTitle}>Excluir Produto?</Text>
+                        <Text style={styles.confirmSub}>
+                            Tem certeza que deseja excluir o produto "{productToDelete?.name}"? 
+                            Ele não aparecerá mais para vendas, mas o histórico antigo será mantido.
+                        </Text>
+
+                        <View style={styles.confirmButtons}>
+                            <TouchableOpacity 
+                                style={styles.btnCancel} 
+                                onPress={() => setDeleteModalVisible(false)}
+                            >
+                                <Text style={styles.btnCancelText}>Cancelar</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={styles.btnConfirm} 
+                                onPress={confirmDelete}
+                            >
+                                <Text style={styles.btnConfirmText}>Sim, excluir</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaProvider>
     );
 };
@@ -115,5 +172,63 @@ const styles = StyleSheet.create({
         shadowColor: '#4963E4', 
         shadowOpacity: 0.3, 
         marginBottom: 60
-    }
+    }, 
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20
+    },
+    confirmCard: {
+        backgroundColor: '#FFF',
+        borderRadius: 20,
+        padding: 25,
+        width: '100%',
+        alignItems: 'center',
+        elevation: 10
+    },
+    warningIcon: {
+        backgroundColor: '#FEF3C7',
+        padding: 15,
+        borderRadius: 50,
+        marginBottom: 15
+    },
+    confirmTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#051D3B',
+        marginBottom: 10
+    },
+    confirmSub: {
+        fontSize: 14,
+        color: '#828489',
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 25
+    },
+    confirmButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between'
+    },
+    btnCancel: {
+        flex: 1,
+        paddingVertical: 15,
+        marginRight: 10,
+        alignItems: 'center',
+        borderRadius: 12,
+        backgroundColor: '#F0F2F5'
+    },
+    btnConfirm: {
+        flex: 1,
+        paddingVertical: 15,
+        marginLeft: 10,
+        alignItems: 'center',
+        borderRadius: 12,
+        backgroundColor: '#EF4444'
+    },
+    btnCancelText: { color: '#828489', fontWeight: 'bold' },
+    btnConfirmText: { color: '#FFF', fontWeight: 'bold' }
 })

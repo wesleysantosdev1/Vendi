@@ -22,7 +22,7 @@ export const ExpenseItem = ({ item, onPress }: Props) => (
         </View>
         
         <View style={styles.right}>
-            <Text style={styles.value}>- R$ {item.value.toFixed(2)}</Text>
+            <Text style={styles.value}>- R$ {(item.value ?? 0).toFixed(2)}</Text>
             <ChevronRight size={18} color="#828489" />
         </View>
     </TouchableOpacity>

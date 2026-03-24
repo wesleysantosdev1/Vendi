@@ -5,10 +5,39 @@ import { Search, Plus, ArrowUpRight } from 'lucide-react-native';
 import { useExpense } from '../../contexts/ExpenseContext'; 
 import { ExpenseItem } from './components/ExpenseItem';
 import { ExpenseDetailModal } from './components/ExpenseDetailModal';
+import { useFocusEffect } from '@react-navigation/native';
+import { api } from '../../services/api';
+import { Expense } from './hooks/useExpenseManager';
 
 export default function ExpenseList({ navigation }: any) {
-    const { expenses, totalMonthlyExpenses } = useExpense();
-    const [selectedExpense, setSelectedExpense] = useState<any>(null);
+    const { totalMonthlyExpenses } = useExpense();
+    const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+    const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [_total, setTotal] = useState<number>(0);
+
+    const loadExpenses = async () => {
+        const response = await api.get('/expenses');
+        const data: Expense[] = response.data.map((item: any) => ({
+            id: item.id,
+            type: item.type.toLowerCase(),
+            description: item.title,
+            value: item.amount,
+            date: item.date,
+            quantity: item.date,
+            category: 'Outros'
+        }));
+
+        setExpenses(data);
+
+        const sum = data.reduce((acc, curr) => acc + curr.value, 0);
+        setTotal(sum);
+    }
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadExpenses();
+        }, [])
+    );
 
     return (
         <SafeAreaProvider style={styles.safe}>
@@ -24,7 +53,9 @@ export default function ExpenseList({ navigation }: any) {
             </View>
 
             <View style={styles.totalCard}>
-                <View style={styles.iconCircle}><ArrowUpRight size={20} color="#EF4444" /></View>
+                <View style={styles.iconCircle}>
+                    <ArrowUpRight size={20} color="#EF4444" />
+                </View>
                 <View style={styles.totalInfo}>
                     <Text style={styles.totalLabel}>Total de gastos no mês</Text>
                     <Text style={styles.totalValue}>- R$ {totalMonthlyExpenses.toFixed(2)}</Text>
@@ -33,7 +64,11 @@ export default function ExpenseList({ navigation }: any) {
 
             <View style={styles.searchBox}>
                 <Search size={20} color="#828489" />
-                <TextInput placeholder="Buscar gastos..." style={styles.searchInput} placeholderTextColor="#828489"/>
+                <TextInput
+                    placeholder="Buscar gastos..."
+                    style={styles.searchInput}
+                    placeholderTextColor="#828489"
+                />
             </View>
 
             <FlatList

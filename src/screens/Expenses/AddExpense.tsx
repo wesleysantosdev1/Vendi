@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert,
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
 import { useProducts, Product } from '../../contexts/ProductContext';
-import { createExpenseRequest } from '../../services/expenseService';
+import { api } from '../../services/api';
 
 export default function AddExpense({ navigation }: any) {
     const { products } = useProducts();
@@ -37,18 +37,23 @@ export default function AddExpense({ navigation }: any) {
         }
 
         try {
-            await createExpenseRequest({
+            const payload = {
                 description,
                 value: parseFloat(value.replace(',', '.')),
-                type,
-                date
-            });
+                type, 
+                date,
+                quantity: quantity ? parseInt(quantity) : 0,
+                linkedProductId: selectedProduct?.id 
+            };
+
+            await api.post('/expenses', payload);
             
             Alert.alert("Sucesso", "Gasto registrado!");
             navigation.goBack();
-        } catch  {
-            Alert.alert("Erro", "Não foi possível salvar no servidor.");
-        }
+        } catch (error) {
+            console.log(error, "Erro aqui")
+            Alert.alert("Erro", "Falha ao salvar no servidor.");
+    }
     };
 
     return (

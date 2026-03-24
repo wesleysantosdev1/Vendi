@@ -1,14 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Box, Pencil } from "lucide-react-native";
+import { Box } from "lucide-react-native";
 import { Product } from "../hooks/useProductManager"; 
+import { Trash2, Edit2 } from 'lucide-react-native';
 
 interface Props {
     item: Product;
     onEdit: (product: Product) => void; 
+    onDelete: (product: Product) => void;
 }
 
-export const ProductItem = ({ item, onEdit }: Props) => (
+export const ProductItem = ({ item, onEdit, onDelete }: Props) => (
     <View style={styles.card}>
         <View style={styles.left}>
             <View style={styles.iconBox}><Box size={20} color="#4963E4" /></View>
@@ -20,8 +22,16 @@ export const ProductItem = ({ item, onEdit }: Props) => (
 
         <View style={styles.right}>
             <Text style={styles.price}>R$ {item.price.toFixed(2)}</Text>
+
             <TouchableOpacity onPress={() => onEdit(item)}>
-                <Pencil size={20} color="#828489" strokeWidth={1.5} />
+                    <Edit2 size={20} color="#4963E4" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                    onPress={() => onDelete(item)} 
+                    style={{ marginLeft: 15 }}
+                >
+                    <Trash2 size={20} color="#EF4444" />
             </TouchableOpacity>
         </View>
     </View>

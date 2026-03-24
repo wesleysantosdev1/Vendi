@@ -13,6 +13,7 @@ export function useProductManager(){
     const [loading, setLoading] = useState(true);
 
     async function loadProducts() {
+        setLoading(true); 
         try {
             const data = await getProductsRequest();
             setProducts(data);
@@ -62,6 +63,7 @@ export function useProductManager(){
         products, 
         addProduct, 
         updateProduct,
-        loading
+        loading,
+        loadProducts
     };
 }

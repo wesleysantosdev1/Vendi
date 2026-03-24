@@ -24,3 +24,11 @@ export async function updateProductRequest(id: string, name: string, price: numb
 
     return response.data;
 }
+
+export async function deleteProductRequest(id: string) {
+    const response = await api.patch(`/products/${id}/disable`, { 
+        active: false 
+    });
+
+    return response.data;
+}

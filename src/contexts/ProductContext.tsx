@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import { getProductsRequest } from "../services/productService";
 
 export interface Product {
     id: string; 
@@ -28,6 +29,19 @@ export function ProductProvider({ children }: { children: ReactNode }) {
             prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
         );
     }; 
+
+    useEffect(() => {
+        async function loadProducts(){
+            try {
+                const data = await getProductsRequest();
+                setProducts(data);
+            } catch (error) {
+                console.log("Erro ao carregar produtos:", error);
+            }
+        }
+
+        loadProducts();
+    }, [])
 
     return (
         <ProductContext.Provider value={{ 

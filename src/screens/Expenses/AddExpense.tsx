@@ -38,12 +38,12 @@ export default function AddExpense({ navigation }: any) {
 
         try {
             const payload = {
-                description,
-                value: parseFloat(value.replace(',', '.')),
-                type, 
+                title: description,
+                amount: parseFloat(value.replace(',', '.')),
+                type: type.toUpperCase(),
                 date,
                 quantity: quantity ? parseInt(quantity) : 0,
-                linkedProductId: selectedProduct?.id 
+                productId: selectedProduct?.id
             };
 
             await api.post('/expenses', payload);

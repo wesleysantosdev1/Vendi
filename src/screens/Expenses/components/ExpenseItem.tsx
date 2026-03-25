@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TrendingDown, ChevronRight } from 'lucide-react-native';
 import { Expense } from '../hooks/useExpenseManager';
+import formatDateTime from '../../../utils/date';
 
 interface Props {
     item: Expense;
@@ -17,7 +18,7 @@ export const ExpenseItem = ({ item, onPress }: Props) => (
 
             <View style={styles.info}>
                 <Text style={styles.description} numberOfLines={1}>{item.description}</Text>
-                <Text style={styles.subDetails}>{item.date} • {item.quantity} un.</Text>
+                <Text style={styles.subDetails}>{formatDateTime(item.date)} • {item.quantity} un.</Text>
             </View>
         </View>
         

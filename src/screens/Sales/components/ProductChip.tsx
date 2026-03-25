@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react-native';
 //interface Props { label: string; stock: number, onPress: void; }
 
 export const ProductChip = ({ label, stock, onPress }: any) => {
-    const isOutOfStock = stock <= 0;
+    const isOutOfStock = (stock ?? 0) <= 0;
 
     return (
         <TouchableOpacity 

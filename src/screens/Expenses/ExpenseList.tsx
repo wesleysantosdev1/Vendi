@@ -23,7 +23,7 @@ export default function ExpenseList({ navigation }: any) {
             description: item.title,
             value: item.amount,
             date: item.date,
-            quantity: item.date,
+            quantity: item.quantity,
             category: 'Outros'
         }));
 

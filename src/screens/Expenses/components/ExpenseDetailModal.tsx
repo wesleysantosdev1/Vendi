@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Package, ArrowLeft } from 'lucide-react-native';
+import formatDateTime  from '../../../utils/date'
 
 interface Props {
     visible: boolean;
@@ -31,8 +32,8 @@ export const ExpenseDetailModal = ({ visible, expense, onClose }: Props) => {
                             isBold 
                         />
                         <DetailRow 
-                            label="Data" 
-                            value={expense.date} 
+                            label="Data e Hora" 
+                            value={formatDateTime(expense.date)} 
                         />
                         <DetailRow 
                             label="Quantidade" 
@@ -40,7 +41,7 @@ export const ExpenseDetailModal = ({ visible, expense, onClose }: Props) => {
                         />
                         <DetailRow 
                             label="Produto vinculado" 
-                            value={expense.linkedProductId ? expense.linkedProductId : 'Nenhum'}
+                            value={expense.productId ? expense.productId : 'Nenhum'}
                             isLink={!!expense.linkedProductName}
                         />
                         

@@ -18,14 +18,12 @@ export function useSaleManager() {
         setSelectedItems((prev) => {
             const existing = prev.find(item => item.id === product.id);
             if (existing) {
-                // Se já existe, aumenta a quantidade
                 return prev.map(item => 
                     item.id === product.id 
                     ? { ...item, quantity: item.quantity + 1 } 
                     : item
                 );
             }
-            // Se é novo, adiciona com quantidade 1
             return [...prev, { ...product, quantity: 1 }];
         });
     };

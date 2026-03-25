@@ -17,6 +17,7 @@ type Product = {
     id: string;
     name: string;
     price: number;
+    stock: number;
 };
 
 
@@ -113,6 +114,7 @@ export default function AddSale(){
                         <ProductChip 
                         key={p.id} 
                         label={p.name} 
+                        stock={p.stock}
                         onPress={() => addItem(p)} 
                         />
                     ))}

@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getProductsRequest, createProductRequest, updateProductRequest } from '../../../services/productService';
 
 export interface Product {
@@ -12,21 +12,27 @@ export function useProductManager(){
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true);
 
-    async function loadProducts() {
+    const loadProducts = useCallback(async () => {
         setLoading(true); 
         try {
             const data = await getProductsRequest();
-            setProducts(data);
+
+            const normalizedProducts = data.map((product: Product) => ({
+                ...product,
+                stock: Math.max(0, product.stock)
+            }));
+
+            setProducts(normalizedProducts);
         } catch (error) {
             console.log('Erro ao buscar produtos', error);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    }, []);
 
     useEffect(() => {
         loadProducts();
-    }, []);
+    }, [loadProducts]);
 
     const addProduct = async (newProduct: Omit<Product, 'id'>) => {
         try {

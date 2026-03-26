@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
 
     Inputs: {
         marginLeft: 8,
+        color: "#000"
     },
 
     viewButton: {

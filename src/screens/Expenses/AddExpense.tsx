@@ -88,6 +88,7 @@ export default function AddExpense({ navigation }: any) {
                     <TextInput 
                         style={styles.input} 
                         placeholder={type === 'merchandise' ? "Ex: 1 caixa de batom" : "Descrição do gasto"}
+                        placeholderTextColor="#000"
                         value={description}
                         onChangeText={setDescription}
                     />
@@ -97,7 +98,8 @@ export default function AddExpense({ navigation }: any) {
                     <DollarSign size={20} color="#828489" />
                     <TextInput 
                         style={styles.input} 
-                        placeholder="Valor total (R$)" 
+                        placeholder="Valor total (R$)"
+                        placeholderTextColor="#000"
                         keyboardType="numeric"
                         value={value}
                         onChangeText={setValue}
@@ -109,6 +111,7 @@ export default function AddExpense({ navigation }: any) {
                     <TextInput 
                         style={styles.input} 
                         placeholder="dd/mm/aaaa"
+                        placeholderTextColor="#000"
                         value={date}
                         onChangeText={handleDateChange}
                         keyboardType='numeric'
@@ -121,7 +124,8 @@ export default function AddExpense({ navigation }: any) {
                         <Hash size={20} color="#828489" />
                         <TextInput 
                             style={styles.input} 
-                            placeholder="Quantidade comprada" 
+                            placeholder="Quantidade comprada"
+                            placeholderTextColor="#000"
                             keyboardType="numeric"
                             value={quantity}
                             onChangeText={setQuantity}
@@ -186,7 +190,7 @@ export default function AddExpense({ navigation }: any) {
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        backgroundColor: '#FFF' 
+        backgroundColor: '#FFF'
     },
 
     header: { 
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
         flex: 1, 
         marginLeft: 10, 
         fontSize: 15, 
-        color: '#1A1A1A' 
+        color: "#000" 
     },
     
     sectionTitle: { 

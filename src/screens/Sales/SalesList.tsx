@@ -21,6 +21,7 @@ export default function SalesList(){
     const navigation = useNavigation<NavigationProp>();
     const [sales, setSales] = useState<Sale[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     async function loadSales() {
         setRefreshing(true);
@@ -47,6 +48,10 @@ export default function SalesList(){
         }, [])
     );
 
+    const filteredSales = sales.filter((sale) => 
+        sale.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+
     return(
         <SafeAreaProvider style={styles.container}>
             <View style={styles.header}>
@@ -59,11 +64,13 @@ export default function SalesList(){
                 placeholder="Buscar vendas..." 
                 style={styles.searchInput}
                 placeholderTextColor="#828489"
+                value={searchText}
+                onChangeText={setSearchText}
                 />
             </View>
 
             <FlatList
-                data={sales}
+                data={filteredSales}
                 keyExtractor={(item) => item.id}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={loadSales} />
@@ -84,7 +91,8 @@ export default function SalesList(){
 const styles = StyleSheet.create({
     container: { 
         flex: 1, 
-        backgroundColor: '#F8F9FA' 
+        backgroundColor: '#F8F9FA', 
+        paddingTop: 10
     },
 
     header: { 
@@ -113,7 +121,8 @@ const styles = StyleSheet.create({
     searchInput: { 
         flex: 1, 
         fontSize: 15, 
-        marginLeft: 10 
+        marginLeft: 10, 
+        color: '#000'
     },
 
     listContent: { 

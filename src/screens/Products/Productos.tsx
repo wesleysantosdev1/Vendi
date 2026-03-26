@@ -1,4 +1,5 @@
-import React, {useState} from "react";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Alert } from "react-native"; 
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Plus } from 'lucide-react-native';
@@ -13,6 +14,12 @@ export default function Productos(){
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadProducts();
+        }, [loadProducts])
+    );
 
     const handleOpenEdit = (product: Product) => {
         setEditingProduct(product);
@@ -132,7 +139,8 @@ export default function Productos(){
 const styles = StyleSheet.create({
     safe: { 
         flex: 1, 
-        backgroundColor: '#F8F9FA' 
+        backgroundColor: '#F8F9FA', 
+        paddingTop: 10,
     },
 
     header: { 

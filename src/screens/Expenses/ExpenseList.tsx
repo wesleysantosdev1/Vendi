@@ -14,6 +14,7 @@ export default function ExpenseList({ navigation }: any) {
     const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [_total, setTotal] = useState<number>(0);
+    const [searchText, setSearchText] = useState('');
 
     const loadExpenses = async () => {
         const response = await api.get('/expenses');
@@ -37,6 +38,10 @@ export default function ExpenseList({ navigation }: any) {
         React.useCallback(() => {
             loadExpenses();
         }, [])
+    );
+
+    const filteredExpenses = expenses.filter((expense) => 
+        expense.description.toLowerCase().includes(searchText.toLowerCase())
     );
 
     return (
@@ -68,11 +73,13 @@ export default function ExpenseList({ navigation }: any) {
                     placeholder="Buscar gastos..."
                     style={styles.searchInput}
                     placeholderTextColor="#828489"
+                    value={searchText}
+                    onChangeText={setSearchText}
                 />
             </View>
 
             <FlatList
-                data={expenses}
+                data={filteredExpenses}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <ExpenseItem item={item} onPress={() => setSelectedExpense(item)} />
@@ -92,13 +99,15 @@ export default function ExpenseList({ navigation }: any) {
 const styles = StyleSheet.create({
     safe: { 
         flex: 1, 
-        backgroundColor: '#F8F9FA' 
+        backgroundColor: '#F8F9FA', 
+        paddingTop: 10
     },
 
     header: { 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
-        padding: 20 
+        padding: 20, 
+        marginBottom: -15
     },
 
     title: { 
@@ -161,7 +170,8 @@ const styles = StyleSheet.create({
 
     searchInput: { 
         marginLeft: 10, 
-        flex: 1 
+        flex: 1, 
+        color: '#000'
     },
 
     list: { 

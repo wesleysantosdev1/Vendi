@@ -16,7 +16,7 @@ export const ProductItem = ({ item, onEdit, onDelete }: Props) => (
             <View style={styles.iconBox}><Box size={20} color="#4963E4" /></View>
             <View style={styles.info}>
                 <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.stock}>Estoque: {item.stock} un.</Text>
+                <Text style={styles.stock}>Estoque: {Math.max(0, item.stock)} un.</Text>
             </View>
         </View>
 

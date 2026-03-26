@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     safe: {
         flex: 1,
         backgroundColor: '#F8F9FA',
+        paddingTop: 30
     },
 
     container: {

@@ -77,6 +77,10 @@ export default function AddSale(){
                 customer: { name, phone },
                 items
             });
+
+            const updatedProducts = await getProductsRequest();
+            setProducts(updatedProducts);
+
             Alert.alert("Sucesso", "Venda Salva!");
 
             setName("");
@@ -87,6 +91,13 @@ export default function AddSale(){
             Alert.alert("Erro", "Falha ao salvar venda.");
         }
     };
+
+    const getAvailableStock = (productId: string, originalStock: number) => {
+        const selected = selectedItems.find(item => item.id === productId);
+        const quantityInCart = selected ? selected.quantity : 0;
+
+        return originalStock - quantityInCart;
+    }
 
     return(
         <SafeAreaProvider style={styles.safe}> 
@@ -110,14 +121,22 @@ export default function AddSale(){
 
                 <Text style={styles.subtitle}>Adicionar produtos</Text>
                 <View style={styles.productGrid}>
-                    {products.map(p => (
-                        <ProductChip 
-                        key={p.id} 
-                        label={p.name} 
-                        stock={p.stock}
-                        onPress={() => addItem(p)} 
-                        />
-                    ))}
+                    {products.map(p => {
+                        const availableStock = getAvailableStock(p.id, p.stock);
+
+                        return (
+                            <ProductChip
+                                key={p.id}
+                                label={p.name}
+                                stock={availableStock}
+                                onPress={() => {
+                                    if (availableStock > 0) {
+                                        addItem(p);
+                                    }
+                                }}
+                            />
+                        );
+                    })}
                 </View>
 
                 {selectedItems.length > 0 && (  
@@ -142,7 +161,8 @@ export default function AddSale(){
 const styles = StyleSheet.create({
     safe: { 
         flex: 1, 
-        backgroundColor: '#F8F9FA' 
+        backgroundColor: '#F8F9FA', 
+        paddingTop: 10
     },
     
     container: { 
@@ -175,7 +195,8 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 30
+        marginTop: 30, 
+        marginBottom: 60
     },
 
     btnText: { 

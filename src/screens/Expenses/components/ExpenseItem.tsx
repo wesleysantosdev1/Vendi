@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { TrendingDown, ChevronRight } from 'lucide-react-native';
-import { Expense } from '../hooks/useExpenseManager';
 import formatDateTime from '../../../utils/date';
+import { Expense } from '../../../contexts/ExpenseContext';
 
 interface Props {
     item: Expense;

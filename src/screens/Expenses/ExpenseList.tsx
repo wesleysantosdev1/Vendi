@@ -2,42 +2,22 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Search, Plus, ArrowUpRight } from 'lucide-react-native';
-import { useExpense } from '../../contexts/ExpenseContext'; 
+//
+import { useExpense, Expense } from '../../contexts/ExpenseContext';
 import { ExpenseItem } from './components/ExpenseItem';
 import { ExpenseDetailModal } from './components/ExpenseDetailModal';
 import { useFocusEffect } from '@react-navigation/native';
-import { api } from '../../services/api';
-import { Expense } from './hooks/useExpenseManager';
+
 
 export default function ExpenseList({ navigation }: any) {
-    const { totalMonthlyExpenses } = useExpense();
+    const { expenses, totalMonthlyExpenses, loadExpenses } = useExpense();
     const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [_total, setTotal] = useState<number>(0);
     const [searchText, setSearchText] = useState('');
-
-    const loadExpenses = async () => {
-        const response = await api.get('/expenses');
-        const data: Expense[] = response.data.map((item: any) => ({
-            id: item.id,
-            type: item.type.toLowerCase(),
-            description: item.title,
-            value: item.amount,
-            date: item.date,
-            quantity: item.quantity,
-            category: 'Outros'
-        }));
-
-        setExpenses(data);
-
-        const sum = data.reduce((acc, curr) => acc + curr.value, 0);
-        setTotal(sum);
-    }
 
     useFocusEffect(
         React.useCallback(() => {
             loadExpenses();
-        }, [])
+        }, [loadExpenses])
     );
 
     const filteredExpenses = expenses.filter((expense) => 
@@ -100,7 +80,8 @@ const styles = StyleSheet.create({
     safe: { 
         flex: 1, 
         backgroundColor: '#F8F9FA', 
-        paddingTop: 10
+        paddingTop: 10, 
+        marginBottom: 70
     },
 
     header: { 

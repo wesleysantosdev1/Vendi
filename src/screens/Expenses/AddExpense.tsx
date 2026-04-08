@@ -1,22 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
-import { useProducts, Product } from '../../contexts/ProductContext';
+import {  Product } from '../../contexts/ProductContext';
 import { api } from '../../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function AddExpense({ navigation }: any) {
-    const { products } = useProducts();
+    const [productsList, setProductsList] = useState<any[]>([]);
+    const [_products, setProducts] = useState<any[]>([]);
     const [type, setType] = useState<'merchandise' | 'operational'>('merchandise');
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [date, setDate] = useState('');
     const [quantity, setQuantity] = useState('');
 
+
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isProductModalVisible, setIsProductModalVisible] = useState(false);
 
-    
+
+    useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const response = await api.get('/products');
+                setProductsList(response.data);
+            } catch (error) {
+                console.log("Erro ao carregar a lista de produtos:", error);
+            }
+        }
+        
+        fetchProducts();
+    }, []);
+
+
+    useFocusEffect(
+        React.useCallback(() => {
+            async function loadProducts() {
+                try {
+                    const response = await api.get('/products');
+                    setProducts(response.data);
+                } catch (error) {
+                    console.error("Erro ao carregar produtos:", error);
+                }
+            }
+            loadProducts();
+        }, [])
+    );
+
+
     const handleDateChange = (text: string) => {
         let cleaned = text.replace(/\D/g, '');
         let formatted = cleaned;
@@ -154,7 +186,7 @@ export default function AddExpense({ navigation }: any) {
                         <View style={styles.modalContent}>
                             <Text style={styles.modalTitle}>Escolha um produto</Text>
                             <FlatList 
-                                data={products}
+                                data={productsList}
                                 keyExtractor={item => item.id}
                                 renderItem={({ item }) => (
                                     <TouchableOpacity 

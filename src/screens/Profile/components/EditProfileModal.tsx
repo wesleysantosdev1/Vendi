@@ -1,26 +1,43 @@
 import React, {useState, useEffect} from "react";
-import { View, Text, Modal, KeyboardAvoidingView, TouchableOpacity, TextInput, Platform, StyleSheet } from "react-native"; 
+import { View, Text, Modal, KeyboardAvoidingView, TouchableOpacity, TextInput, Platform, StyleSheet, Alert, ActivityIndicator } from "react-native"; 
 import { X, User, Mail  } from 'lucide-react-native';
+import { api } from "../../../services/api";
 
 interface Props {
     visible: boolean;
     onClose: () => void;
+    initialData: { name: string, email: string };
 }
 
-export const EditProfileModal = ({ visible, onClose }: Props ) => {
+export const EditProfileModal = ({ visible, onClose, initialData }: Props ) => {
     const [name, setName] = useState(''); 
-    const [email, setEmail] = useState(''); 
+    const [email, setEmail] = useState('');
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if(visible) {
-            setName('Wesley Santos');
-            setEmail('wesleysanto@gmail.com');
+            setName(initialData.name);
+            setEmail(initialData.email);
         }
-    }, [visible]); 
+    }, [visible, initialData?.name, initialData?.email]);
 
-    const handleSave = () => {
-        console.log("Salvando perfil: ", { name, email });
-        onClose();
+    const handleSave = async () => {
+        if (!name || !email) {
+            Alert.alert("Erro", "Preencha todos os campos");
+            return;
+        }
+
+        try{
+            setSaving(true);
+            await api.post('/users/update', { name, email });
+            Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+            onClose();
+        } catch (error) {
+            console.log("Erro ao salvar perfil: ", error);
+            Alert.alert("Error", "Não foi possível atualizar o perfil.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return(
@@ -60,8 +77,12 @@ export const EditProfileModal = ({ visible, onClose }: Props ) => {
                         />
                     </View>
 
-                    <TouchableOpacity style={styles.btn} onPress={handleSave}>
-                        <Text style={styles.btnText}>Salvar Alterações</Text>
+                    <TouchableOpacity style={styles.btn} onPress={handleSave} disabled={saving}>
+                        {saving ? (
+                            <ActivityIndicator color="#FFF" />
+                        ) : (
+                            <Text style={styles.btnText}>Salvar Alterações</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>

@@ -59,29 +59,51 @@ export const SupportModal = ({ visible, onClose }: Props) => {
 
                     <View style={styles.inputContainer}>
                         <User size={20} color="#828489" style={styles.inputIcon} />
-                        <TextInput placeholder="Seu nome" style={styles.input} value={name} onChangeText={setName} />
+                        <TextInput 
+                            placeholder="Seu nome"
+                            placeholderTextColor="#000"
+                            style={styles.input} 
+                            value={name} 
+                            onChangeText={setName} 
+                        />
                     </View>
 
                     <View style={styles.inputContainer}>
                         <Mail size={20} color="#828489" style={styles.inputIcon} />
-                        <TextInput placeholder="Seu e-mail" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+                        <TextInput 
+                            placeholder="Seu e-mail"
+                            placeholderTextColor="#000"
+                            style={styles.input} 
+                            value={email} 
+                            onChangeText={setEmail} 
+                            keyboardType="email-address" 
+                            autoCapitalize="none" 
+                        />
                     </View>
 
                     <View style={styles.inputContainer}>
                         <Phone size={20} color="#828489" style={styles.inputIcon} />
-                        <TextInput placeholder="Seu telefone" style={styles.input} value={phoneInput} onChangeText={setPhoneInput} keyboardType="phone-pad" />
+                        <TextInput 
+                            placeholder="Seu telefone"
+                            placeholderTextColor="#000"
+                            style={styles.input} 
+                            value={phoneInput} 
+                            onChangeText={setPhoneInput} 
+                            keyboardType="phone-pad" 
+                        />
                     </View>
 
                     <View style={[styles.inputContainer, styles.textAreaContainer]}>
                         <MessageSquare size={20} color="#828489" style={[styles.inputIcon, { marginTop: 12 }]} />
                         <TextInput 
-                        placeholder="Descreva o que aconteceu..." 
-                        style={[styles.input, styles.textArea]} 
-                        value={message} 
-                        onChangeText={setMessage} 
-                        multiline={true}
-                        numberOfLines={4}
-                        textAlignVertical="top"
+                            placeholder="Descreva o que aconteceu..."
+                            placeholderTextColor="#000"
+                            style={[styles.input, styles.textArea]} 
+                            value={message} 
+                            onChangeText={setMessage} 
+                            multiline={true}
+                            numberOfLines={4}
+                            textAlignVertical="top"
                         />
                     </View>
 

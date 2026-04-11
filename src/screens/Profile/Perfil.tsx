@@ -18,16 +18,20 @@ export default function ProfileScreen() {
     const navigation = useNavigation<NavigationProp>();
     const [editModal, setEditModal] = useState(false);
     const [supportModal, setSupportModal] = useState(false);
-
-    const [userData, setUserData] = useState({ name: '', email: ''});
     const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState({ 
+        name: '', 
+        email: '',
+        stats: { sales: 0, products: 0, clients: 0 } // Adicionamos os stats aqui
+    });
 
     const loadProfile = async () => {
         try {
             const response = await api.get('/users/me');
             setUserData({
                 name: response.data.name,
-                email: response.data.email
+                email: response.data.email, 
+                stats: response.data.stats
             });
         } catch (error) {
             console.log("Erro ao carregar perfil", error)
@@ -69,9 +73,9 @@ export default function ProfileScreen() {
                         </View>
 
                         <View style={styles.statsRow}>
-                            <StatCard label="Vendas" value={142} />
-                            <StatCard label="Produtos" value={5} />
-                            <StatCard label="Clientes" value={38} />
+                            <StatCard label="Vendas" value={userData.stats?.sales || 0} />
+                            <StatCard label="Produtos" value={userData.stats?.products || 0} />
+                            <StatCard label="Clientes" value={userData.stats?.clients || 0} />
                         </View>
 
                         <View style={styles.menuSection}>

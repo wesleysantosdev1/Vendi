@@ -1,4 +1,5 @@
-import { View, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
+import BootSplash from "react-native-bootsplash";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import TabNavigator from "./TabNavigator";
 
@@ -14,12 +15,14 @@ const Stack = createNativeStackNavigator();
 export default function StackNavigator(){
     const { token, loading } = useAuth();
 
+    useEffect(() => {
+        if (!loading) {
+            BootSplash.hide({ fade: true });
+        }
+    }, [loading]);
+
     if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color="#4963E4" />
-            </View>
-        );
+        return null;
     }
 
     return(

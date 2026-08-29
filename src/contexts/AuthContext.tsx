@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Keychain from "react-native-keychain";
 import { setAuthToken, setUnauthorizedHandler } from "../services/api";
 
 type User = {
@@ -16,7 +16,7 @@ type AuthContextType = {
     signOut: () => Promise<void>;
 };
 
-const STORAGE_KEY = "@vendi:auth";
+const KEYCHAIN_SERVICE = "vendi.auth";
 
 const AuthContext = createContext({} as AuthContextType);
 
@@ -28,9 +28,9 @@ export function AuthProvider({ children }: any) {
     useEffect(() => {
         async function loadStoredAuth() {
             try {
-                const stored = await AsyncStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    const { user: storedUser, token: storedToken } = JSON.parse(stored);
+                const credentials = await Keychain.getGenericPassword({ service: KEYCHAIN_SERVICE });
+                if (credentials) {
+                    const { user: storedUser, token: storedToken } = JSON.parse(credentials.password);
                     setUser(storedUser);
                     setToken(storedToken);
                     setAuthToken(storedToken);
@@ -51,7 +51,11 @@ export function AuthProvider({ children }: any) {
 
         setAuthToken(userToken);
 
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ user: userData, token: userToken }));
+        await Keychain.setGenericPassword(
+            userData.id,
+            JSON.stringify({ user: userData, token: userToken }),
+            { service: KEYCHAIN_SERVICE }
+        );
     }
 
     async function signOut() {
@@ -60,7 +64,7 @@ export function AuthProvider({ children }: any) {
 
         setAuthToken(null);
 
-        await AsyncStorage.removeItem(STORAGE_KEY);
+        await Keychain.resetGenericPassword({ service: KEYCHAIN_SERVICE });
     }
 
     const signOutRef = useRef(signOut);

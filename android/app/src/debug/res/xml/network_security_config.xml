@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sobrescreve o network_security_config de src/main/res/xml só em builds debug
+  (Gradle mescla por build type). Adiciona 10.0.2.2/localhost, necessários pro
+  Metro (bundler) em dev — sem isso o app trava carregando o bundle no emulador/
+  dispositivo em debug. O build de release usa só o arquivo de src/main, que não
+  inclui esses domínios.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.11</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

@@ -174,7 +174,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: '#F8F9FA',
         paddingTop: 10,
     },
 
@@ -190,12 +190,12 @@ const styles = StyleSheet.create({
     greeting: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#FFFFFF'
+        color: '#1A1A1A'
     },
 
     date: {
         fontSize: 14,
-        color: '#C7C7C7',
+        color: '#828489',
         marginTop: 4
     },
 
@@ -208,13 +208,13 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 17,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: '#1A1A1A',
         marginTop: 25,
         marginBottom: 15
     },
 
     emptyText: {
-        color: '#C7C7C7',
+        color: '#828489',
         textAlign: 'center',
         marginTop: 10,
         fontStyle: 'italic'

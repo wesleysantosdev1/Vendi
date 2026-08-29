@@ -1,14 +1,13 @@
 import React from "react";
-import {View, Text, StyleSheet, Image, Platform, TextInput, TouchableOpacity } from "react-native";
+import {View, Text, StyleSheet, Image, Platform, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { Mail, Lock } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../navigations/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-
 import { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
 import { loginRequest } from "../../services/authService";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 export default function Login(){
@@ -19,31 +18,29 @@ export default function Login(){
     >
 
     const navigation = useNavigation<NavigationProp>();
+    const { signIn } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { signIn } = useAuth();
+    const [loading, setLoading] = useState(false);
 
     async function handleLogin() {
+        if (!email || !password) {
+            Alert.alert("Erro", "Preencha e-mail e senha");
+            return;
+        }
+
         try {
-            if (!email || !password) {
-                alert("Preencha todos os campos");
-                return;
-            }
-
-            const data  = await loginRequest(email, password);
-
-            signIn(data.user, data.token);
-
-            navigation.navigate("Home");
-
+            setLoading(true);
+            const { user, token } = await loginRequest(email, password);
+            await signIn(user, token);
         } catch (error: any) {
-            console.log(error.response?.data);
-
-            alert(
-                error.response?.data?.error ||
-                "Erro ao fazer login"
+            Alert.alert(
+                "Erro ao entrar",
+                error.response?.data?.error || "Não foi possível fazer login"
             );
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -82,10 +79,15 @@ export default function Login(){
             </View>
 
             <View style={styles.viewButton}>
-                <TouchableOpacity 
+                <TouchableOpacity
                 onPress={handleLogin}
+                disabled={loading}
                 style={styles.button}>
-                    <Text style={styles.Text3}>Entrar</Text>
+                    {loading ? (
+                        <ActivityIndicator color="#fff" style={{ marginTop: 8 }} />
+                    ) : (
+                        <Text style={styles.Text3}>Entrar</Text>
+                    )}
                 </TouchableOpacity>
             </View>
 

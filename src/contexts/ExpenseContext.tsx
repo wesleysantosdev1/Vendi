@@ -30,7 +30,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
             
             const formattedData: Expense[] = response.data.map((item: any) => ({
                 id: item.id,
-                type: item.type.toLowerCase(),
+                type: item.type.toUpperCase() === 'COMPRA' ? 'merchandise' : 'operational',
                 description: item.title,
                 value: item.amount,
                 date: item.date, 

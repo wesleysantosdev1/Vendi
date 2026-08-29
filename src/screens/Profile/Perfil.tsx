@@ -2,20 +2,17 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { User, LifeBuoy, LogOut } from 'lucide-react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from "../../navigations/types";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 import { StatCard, MenuItem } from './components/ProfileComponents';
-import { SupportModal } from './components/SupportModal'; 
+import { SupportModal } from './components/SupportModal';
 import { EditProfileModal } from './components/EditProfileModal';
 
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
-
 export default function ProfileScreen() {
-    const navigation = useNavigation<NavigationProp>();
+    const { signOut } = useAuth();
     const [editModal, setEditModal] = useState(false);
     const [supportModal, setSupportModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -92,10 +89,10 @@ export default function ProfileScreen() {
                             />
                         </View>
 
-                        <TouchableOpacity 
-                            style={styles.logoutBtn} 
+                        <TouchableOpacity
+                            style={styles.logoutBtn}
                             activeOpacity={0.7}
-                            onPress={() => navigation.navigate('Login')}
+                            onPress={() => signOut()}
                         >
                             <LogOut size={20} color="#EF4444" />
                             <Text style={styles.logoutText}>Sair da conta</Text>

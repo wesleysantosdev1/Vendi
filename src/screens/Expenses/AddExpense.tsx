@@ -70,13 +70,14 @@ export default function AddExpense({ navigation }: any) {
 
         try {
             const backendType = type === 'merchandise' ? 'COMPRA' : 'OPERACIONAL';
+            const parsedQuantity = quantity ? parseInt(quantity, 10) : 0;
 
             const payload = {
                 title: description,
                 amount: parseFloat(value.replace(',', '.')),
                 type: backendType,
                 date,
-                quantity: quantity ? parseInt(quantity) : 0,
+                quantity: parsedQuantity > 0 ? parsedQuantity : undefined,
                 productId: selectedProduct?.id
             };
 
@@ -84,9 +85,9 @@ export default function AddExpense({ navigation }: any) {
             
             Alert.alert("Sucesso", "Gasto registrado!");
             navigation.goBack();
-        } catch (error) {
+        } catch (error: any) {
             console.log(error, "Erro aqui")
-            Alert.alert("Erro", "Falha ao salvar no servidor.");
+            Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar no servidor.");
     }
     };
 

@@ -49,56 +49,6 @@ export default function Reports() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<ReportResponse | null>(null);
 
-    const fallbackDia = useMemo<ChartItem[]>(
-        () => [
-            { value: 320, label: "Seg", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 80, frontColor: DANGER_RED },
-            { value: 450, label: "Ter", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 150, frontColor: DANGER_RED },
-            { value: 280, label: "Qua", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 0, frontColor: DANGER_RED },
-            { value: 520, label: "Qui", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 220, frontColor: DANGER_RED },
-            { value: 390, label: "Sex", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 50, frontColor: DANGER_RED },
-            { value: 610, label: "Sáb", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 349, frontColor: DANGER_RED },
-            { value: 180, label: "Dom", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 250, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
-    const fallbackSemana = useMemo<ChartItem[]>(
-        () => [
-            { value: 2100, label: "S1", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 480, frontColor: DANGER_RED },
-            { value: 2800, label: "S2", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 650, frontColor: DANGER_RED },
-            { value: 2340, label: "S3", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 350, frontColor: DANGER_RED },
-            { value: 3200, label: "S4", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 850, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
-    const fallbackMes = useMemo<ChartItem[]>(
-        () => [
-            { value: 8000, label: "Out", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3100, frontColor: DANGER_RED },
-            { value: 9000, label: "Nov", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3500, frontColor: DANGER_RED },
-            { value: 12500, label: "Dez", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 4800, frontColor: DANGER_RED },
-            { value: 8500, label: "Jan", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3200, frontColor: DANGER_RED },
-            { value: 6000, label: "Fev", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 1358.34, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
     const formatCurrency = (value: number = 0) => {
         return value.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
@@ -107,11 +57,10 @@ export default function Reports() {
     };
 
     const buildChartData = (
-        source?: Array<{ label: string; vendas: number; gastos: number }>,
-        fallback?: ChartItem[]
+        source?: Array<{ label: string; vendas: number; gastos: number }>
     ): ChartItem[] => {
         if (!source || source.length === 0) {
-            return fallback ?? [];
+            return [];
         }
 
         const normalized = source.flatMap((item) => [
@@ -136,11 +85,11 @@ export default function Reports() {
 
     const chartDataByTab = useMemo(() => {
         return {
-            Dia: buildChartData(stats?.chartData?.dia, fallbackDia),
-            Semana: buildChartData(stats?.chartData?.semana, fallbackSemana),
-            Mês: buildChartData(stats?.chartData?.mes, fallbackMes),
+            Dia: buildChartData(stats?.chartData?.dia),
+            Semana: buildChartData(stats?.chartData?.semana),
+            Mês: buildChartData(stats?.chartData?.mes),
         };
-    }, [stats, fallbackDia, fallbackSemana, fallbackMes]);
+    }, [stats]);
 
     const getCurrentData = () => {
         return chartDataByTab[activeTab];

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
-import {  Product } from '../../contexts/ProductContext';
+import { Product } from '../../types/product';
 import { api } from '../../services/api';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -69,12 +69,15 @@ export default function AddExpense({ navigation }: any) {
         }
 
         try {
+            const backendType = type === 'merchandise' ? 'COMPRA' : 'OPERACIONAL';
+            const parsedQuantity = quantity ? parseInt(quantity, 10) : 0;
+
             const payload = {
                 title: description,
                 amount: parseFloat(value.replace(',', '.')),
-                type: type.toUpperCase(),
+                type: backendType,
                 date,
-                quantity: quantity ? parseInt(quantity) : 0,
+                quantity: parsedQuantity > 0 ? parsedQuantity : undefined,
                 productId: selectedProduct?.id
             };
 
@@ -82,9 +85,9 @@ export default function AddExpense({ navigation }: any) {
             
             Alert.alert("Sucesso", "Gasto registrado!");
             navigation.goBack();
-        } catch (error) {
+        } catch (error: any) {
             console.log(error, "Erro aqui")
-            Alert.alert("Erro", "Falha ao salvar no servidor.");
+            Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar no servidor.");
     }
     };
 

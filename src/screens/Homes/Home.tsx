@@ -172,9 +172,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    safe: { 
-        flex: 1, 
-        backgroundColor: '#F8F9FA', 
+    safe: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
         paddingTop: 10,
     },
 
@@ -187,16 +187,16 @@ const styles = StyleSheet.create({
         marginBottom: 20 
     },
 
-    greeting: { 
-        fontSize: 22, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A' 
+    greeting: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1A1A1A'
     },
 
-    date: { 
-        fontSize: 14, 
+    date: {
+        fontSize: 14,
         color: '#828489',
-        marginTop: 4 
+        marginTop: 4
     },
 
     row: { 
@@ -205,12 +205,12 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start' 
     },
 
-    sectionTitle: { 
-        fontSize: 17, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A', 
-        marginTop: 25, 
-        marginBottom: 15 
+    sectionTitle: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        color: '#1A1A1A',
+        marginTop: 25,
+        marginBottom: 15
     },
 
     emptyText: {

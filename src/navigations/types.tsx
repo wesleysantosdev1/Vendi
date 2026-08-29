@@ -3,6 +3,7 @@ export type RootStackParamList = {
     Register: undefined;
     Home: undefined;
     SaleDetails: { sale: any };
+    AddExpenseForm: undefined;
 };
 
 export type TabParamList = {

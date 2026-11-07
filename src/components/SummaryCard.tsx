@@ -1,42 +1,37 @@
 import React from "react";
 import { View, Text, StyleSheet } from 'react-native';
+import { spacing, type } from '../theme';
 
 interface Props {
     label: string;
     value: string;
-    color: string;
 }
 
-export const SummaryCard = ({ label, value, color}: Props) => (
+// Métrica simples: rótulo em caixa alta + valor. Pensada para ficar lado a lado
+// dentro de um grupo, separadas por linha vertical.
+export const SummaryCard = ({ label, value }: Props) => (
     <View style={styles.card}>
-        <Text style={styles.label}> {label} </Text>
-        <Text style={[styles.value, { color }]}>{value}</Text>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
     </View>
 );
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#FFF',
-        width: '31%',
-        paddingVertical: 14,
-        borderRadius: 14,
-        alignItems: 'center',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-    }, 
+        flex: 1,
+        paddingVertical: spacing.lg,
+        paddingHorizontal: spacing.lg,
+    },
 
     label: {
-        fontSize: 10, 
-        color: '#828489', 
-        fontWeight: 'bold', 
-        marginBottom: 6
-    }, 
+        ...type.eyebrow,
+        marginBottom: spacing.xs,
+    },
 
     value: {
-        fontSize: 15, 
-        fontWeight: 'bold', 
-    }
-})
+        ...type.money,
+        fontSize: 18,
+        fontWeight: '800',
+        letterSpacing: -0.3,
+    },
+});

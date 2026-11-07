@@ -1,7 +1,11 @@
-import React, {useState, useEffect} from "react";
-import { Modal, View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
-import { X } from 'lucide-react-native';
+import React, { useState, useEffect } from "react";
+import { View, Alert, StyleSheet } from "react-native";
+import { Tag, DollarSign, Hash } from 'lucide-react-native';
 import { Product } from "../hooks/useProductManager";
+import { BottomSheet } from "../../../components/BottomSheet";
+import { TextField } from "../../../components/TextField";
+import { Button } from "../../../components/Button";
+import { spacing } from "../../../theme";
 
 interface Props {
     visible: boolean;
@@ -28,105 +32,78 @@ export const ProductModal = ({ visible, onClose, onSave, productToEdit }: Props)
     }, [productToEdit, visible]);
 
     const handleSave = () => {
+        const parsedPrice = parseFloat(price.replace(',', '.'));
+        const parsedStock = parseInt(stock, 10);
+
+        if (!name.trim() || Number.isNaN(parsedPrice) || Number.isNaN(parsedStock)) {
+            Alert.alert("Erro", "Preencha nome, valor e estoque.");
+            return;
+        }
+
         onSave({
             id: productToEdit?.id,
-            name,
-            price: parseFloat(price.replace(',', '.')),
-            stock: parseInt(stock)
+            name: name.trim(),
+            price: parsedPrice,
+            stock: parsedStock
         });
         onClose();
     };
 
     return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <View style={styles.overlay}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>{productToEdit ? 'Editar Produto' : 'Novo Produto'}</Text>
-                        <TouchableOpacity onPress={onClose}><X size={24} color="#828489" /></TouchableOpacity>
-                    </View>
+        <BottomSheet
+            visible={visible}
+            onClose={onClose}
+            title={productToEdit ? 'Editar produto' : 'Novo produto'}
+        >
+            <TextField
+                label="Nome"
+                Icon={Tag}
+                placeholder="Ex: Batom matte"
+                value={name}
+                onChangeText={setName}
+            />
 
-                    <TextInput 
-                    placeholder="Nome do produto"
-                    placeholderTextColor="#000"
-                    style={styles.input} value={name} 
-                    onChangeText={setName} 
-                    />
-                    
-                    <TextInput 
-                    placeholder="Valor (R$)" 
-                    placeholderTextColor="#000"
-                    style={styles.input} 
-                    keyboardType="numeric" 
-                    value={price} 
-                    onChangeText={setPrice} 
-                    />
-
-                    <TextInput 
-                    placeholder="Quantidade em estoque"
-                    placeholderTextColor="#000"
-                    style={styles.input} 
-                    keyboardType="numeric" 
-                    value={stock} 
-                    onChangeText={setStock} 
-                    />
-
-                    <TouchableOpacity style={styles.btn} onPress={handleSave}>
-                        <Text style={styles.btnText}>{productToEdit ? 'Salvar alterações' : 'Adicionar produto'}</Text>
-                    </TouchableOpacity>
-                </View>
+            <View style={styles.row}>
+                <TextField
+                    label="Valor"
+                    Icon={DollarSign}
+                    placeholder="0,00"
+                    keyboardType="numeric"
+                    value={price}
+                    onChangeText={setPrice}
+                    containerStyle={styles.rowItem}
+                />
+                <TextField
+                    label="Estoque"
+                    Icon={Hash}
+                    placeholder="0"
+                    keyboardType="numeric"
+                    value={stock}
+                    onChangeText={setStock}
+                    containerStyle={styles.rowItem}
+                />
             </View>
-        </Modal>
+
+            <Button
+                title={productToEdit ? 'Salvar alterações' : 'Adicionar produto'}
+                onPress={handleSave}
+                style={styles.button}
+            />
+        </BottomSheet>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: { 
-        flex: 1, 
-        backgroundColor: 'rgba(0,0,0,0.5)', 
-        justifyContent: 'flex-end' 
+    row: {
+        flexDirection: 'row',
+        gap: spacing.sm,
     },
 
-    content: {
-        backgroundColor: '#FFF', 
-        borderTopLeftRadius: 24, 
-        borderTopRightRadius: 24, 
-        padding: 24, 
-        paddingBottom: 40 
+    rowItem: {
+        flex: 1,
     },
 
-    header: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginBottom: 20 
+    button: {
+        marginTop: spacing.sm,
     },
-
-    title: { 
-        fontSize: 20, 
-        fontWeight: 'bold' 
-    },
-
-    input: { 
-        backgroundColor: '#F0F2F5', 
-        height: 55, 
-        borderRadius: 12, 
-        paddingHorizontal: 15, 
-        marginBottom: 15, 
-        fontSize: 15 
-    },
-
-    btn: { 
-        backgroundColor: '#4963E4', 
-        height: 55, 
-        borderRadius: 14, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        marginTop: 10 
-    },
-
-    btnText: { 
-        color: '#FFF', 
-        fontSize: 16, 
-        fontWeight: 'bold' 
-    }
-})
+});

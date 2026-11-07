@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Build de debug: libera cleartext HTTP pra qualquer domínio, sem lista de IP.
+  O IP do back muda toda vez que a máquina reconecta no Wi-Fi, então travar
+  isso num domain-config específico aqui obrigava editar este arquivo junto
+  com src/services/api.ts sempre que o IP mudasse. Como isso só entra em
+  builds debug (nunca vai pro usuário final), não tem o mesmo risco que teria
+  em release — o único lugar que precisa mudar agora é o baseURL em
+  src/services/api.ts.
+  Build de release usa só o network_security_config de src/main, que continua
+  restrito por domínio (e deve virar HTTPS antes de qualquer release real).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,198 +1,184 @@
 import React from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Package, ArrowLeft } from 'lucide-react-native';
-import formatDateTime  from '../../../utils/date'
+import { Modal, View, Text, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Package } from 'lucide-react-native';
+import formatDateTime from '../../../utils/date';
+import { formatBRL } from '../../../utils/money';
+import { Expense } from '../../../contexts/ExpenseContext';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { colors, spacing, radius, type } from '../../../theme';
 
 interface Props {
     visible: boolean;
-    expense: any;
+    expense: Expense | null;
     onClose: () => void;
 }
 
 export const ExpenseDetailModal = ({ visible, expense, onClose }: Props) => {
     if (!expense) return null;
 
+    const linkedProduct = expense.linkedProductName
+        || (expense.productId ? 'Produto vinculado' : 'Nenhum');
+
     return (
-        <Modal visible={visible} animationType="slide" transparent>
-            <View style={styles.overlay}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <TouchableOpacity onPress={onClose} style={styles.backBtn}>
-                            <ArrowLeft size={20} color="#4963E4" />
-                            <Text style={styles.backText}>Voltar</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.title}>Detalhes do Gasto</Text>
-                    </View>
-
-                    <View style={styles.mainCard}>
-                        <DetailRow 
-                            label="Descrição" 
-                            value={expense.description} 
-                            isBold 
+        <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+            <SafeAreaProvider>
+                <SafeAreaView style={styles.safe}>
+                    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+                        <ScreenHeader
+                            eyebrow={expense.type === 'merchandise' ? 'Compra de mercadoria' : 'Gasto operacional'}
+                            title={expense.description}
+                            onBack={onClose}
                         />
-                        <DetailRow 
-                            label="Data e Hora" 
-                            value={formatDateTime(expense.date)} 
-                        />
-                        <DetailRow 
-                            label="Quantidade" 
-                            value={`${expense.quantity} un.`} 
-                        />
-                        <DetailRow 
-                            label="Produto vinculado" 
-                            value={expense.productId ? expense.productId : 'Nenhum'}
-                            isLink={!!expense.linkedProductName}
-                        />
-                        
-                        <View style={styles.divider} />
-                        
-                        <View style={styles.totalRow}>
-                            <Text style={styles.totalLabel}>Total</Text>
-                            <Text style={styles.totalValue}>- R$ {expense.value.toFixed(2)}</Text>
-                        </View>
-                    </View>
 
-                    {expense.type === 'merchandise' && expense.linkedProductName && (
-                        <View style={styles.stockBadge}>
-                            <View style={styles.stockIcon}><Package size={18} color="#4963E4" /></View>
-
-                            <View style={styles.stockInfo}>
-                                <Text style={styles.stockTitle}>Estoque atualizado</Text>
-                                <Text style={styles.stockDesc}>+{expense.quantity} unidades adicionadas ao produto "{expense.linkedProductName}"</Text>
+                        <View style={styles.content}>
+                            <View style={styles.hero}>
+                                <Text style={styles.heroLabel}>Valor</Text>
+                                <Text style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit>
+                                    − {formatBRL(expense.value)}
+                                </Text>
                             </View>
+
+                            <View style={styles.group}>
+                                <DetailRow label="Descrição" value={expense.description} strong />
+                                <DetailRow label="Data e hora" value={formatDateTime(expense.date)} />
+                                <DetailRow label="Quantidade" value={expense.quantity ? `${expense.quantity} un.` : '—'} />
+                                <DetailRow label="Produto" value={linkedProduct} last />
+                            </View>
+
+                            {expense.type === 'merchandise' && expense.linkedProductName && expense.quantity ? (
+                                <View style={styles.stockNote}>
+                                    <View style={styles.stockIcon}>
+                                        <Package size={18} color={colors.ink} />
+                                    </View>
+                                    <View style={styles.stockInfo}>
+                                        <Text style={styles.stockTitle}>Estoque atualizado</Text>
+                                        <Text style={styles.stockDesc}>
+                                            +{expense.quantity} unidades adicionadas a "{expense.linkedProductName}"
+                                        </Text>
+                                    </View>
+                                </View>
+                            ) : null}
                         </View>
-                    )}
-                </View>
-            </View>
+                    </ScrollView>
+                </SafeAreaView>
+            </SafeAreaProvider>
         </Modal>
     );
 };
 
-const DetailRow = ({ label, value, isBold, isLink }: any) => (
-    <View style={styles.row}>
+interface DetailRowProps {
+    label: string;
+    value: string;
+    strong?: boolean;
+    last?: boolean;
+}
+
+const DetailRow = ({ label, value, strong, last }: DetailRowProps) => (
+    <View style={[styles.row, !last && styles.rowBorder]}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.value, isBold && styles.bold, isLink && styles.link]}>{value}</Text>
+        <Text style={[styles.value, strong && styles.valueStrong]}>{value}</Text>
     </View>
 );
 
 const styles = StyleSheet.create({
-    overlay: { 
-        flex: 1, 
-        backgroundColor: '#F8F9FA' 
+    safe: {
+        flex: 1,
+        backgroundColor: colors.paper,
     },
 
-    content: { 
-        padding: 20 
+    container: {
+        paddingBottom: spacing.xxxl,
     },
 
-    header: { 
-        marginBottom: 30 
+    content: {
+        paddingHorizontal: spacing.xl,
     },
 
-    backBtn: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        marginBottom: 15 
+    hero: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.xl,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        padding: spacing.xl,
+        marginBottom: spacing.md,
     },
 
-    backText: {
-        color: '#4963E4', 
-        marginLeft: 5, 
-        fontSize: 16 
+    heroLabel: {
+        ...type.eyebrow,
     },
 
-    title: { 
-        fontSize: 24, 
-        fontWeight: 'bold', 
-        color: '#051D3B' 
+    heroValue: {
+        ...type.display,
+        color: colors.danger,
+        marginTop: spacing.sm,
     },
 
-    mainCard: { 
-        backgroundColor: '#FFF', 
-        borderRadius: 16, 
-        padding: 20, 
-        elevation: 2 
+    group: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        paddingHorizontal: spacing.lg,
     },
 
-    row: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginBottom: 15 
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: spacing.lg,
+        paddingVertical: spacing.md + 2,
     },
 
-    label: { 
-        color: '#828489', 
-        fontSize: 15 
+    rowBorder: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.line,
     },
 
-    value: { 
-        color: '#1A1A1A', 
-        fontSize: 15, flex: 1, 
-        textAlign: 'right', 
-        marginLeft: 20 
+    label: {
+        ...type.caption,
+        fontSize: 14,
     },
 
-    bold: { 
-        fontWeight: 'bold' 
+    value: {
+        ...type.body,
+        flex: 1,
+        textAlign: 'right',
     },
 
-    link: { 
-        color: '#4963E4', 
-        fontWeight: 'bold' 
+    valueStrong: {
+        fontWeight: '700',
     },
 
-    divider: { 
-        height: 1, 
-        backgroundColor: '#F0F2F5', 
-        marginVertical: 10 
+    stockNote: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.limeSoft,
+        padding: spacing.lg,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        marginTop: spacing.md,
     },
 
-    totalRow: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginTop: 10 
+    stockIcon: {
+        backgroundColor: colors.surface,
+        padding: spacing.sm,
+        borderRadius: radius.sm,
     },
 
-    totalLabel: { 
-        fontSize: 16, 
-        fontWeight: 'bold' 
+    stockInfo: {
+        marginLeft: spacing.md,
+        flex: 1,
     },
 
-    totalValue: { 
-        fontSize: 20, 
-        fontWeight: 'bold', 
-        color: '#EF4444' 
+    stockTitle: {
+        ...type.eyebrow,
     },
 
-    stockBadge: { 
-        flexDirection: 'row', 
-        backgroundColor: '#EEF2FF', 
-        padding: 15, 
-        borderRadius: 16, 
-        marginTop: 20,
-        alignItems: 'center'
+    stockDesc: {
+        ...type.bodyStrong,
+        fontSize: 14,
+        marginTop: 2,
     },
-    stockIcon: { 
-        backgroundColor: '#FFF', 
-        padding: 8, 
-        borderRadius: 10 
-    },
-
-    stockInfo: { 
-        marginLeft: 15, 
-        flex: 1 
-    },
-
-    stockTitle: { 
-        fontSize: 12, 
-        color: '#828489' 
-    },
-
-    stockDesc: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        color: '#051D3B',
-        marginTop: 2 
-    }
 });

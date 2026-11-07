@@ -1,10 +1,13 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { TrendingDown, TrendingUp, DollarSign } from "lucide-react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BarChart } from "react-native-gifted-charts";
 import { api } from "../../services/api";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { formatBRL } from "../../utils/money";
+import { colors, spacing, radius, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 type TabType = "Dia" | "Semana" | "Mês";
 
@@ -34,120 +37,60 @@ type ReportResponse = {
     };
 };
 
-const PRIMARY_BLUE = "#4963E4";
-const DANGER_RED = "#EF4444";
-const SUCCESS_GREEN = "#22C55E";
-const TEXT_DARK = "#051D3B";
-const TEXT_MUTED = "#828489";
-const BG_LIGHT = "#F8F9FA";
-const CARD_BG = "#FFFFFF";
-const TAB_BG = "#EEF0F2";
-const GRID_COLOR = "#E5E7EB";
+// Cores do gráfico (sobre o card escuro)
+const SALES_COLOR = colors.lime;
+const EXPENSES_COLOR = colors.dangerOnInk;
+
+const SCREEN_PADDING = spacing.xl;
+const CARD_PADDING = spacing.lg;
+const Y_AXIS_LABEL_WIDTH = 44;
 
 export default function Reports() {
+    const navigation = useNavigation();
+    const { width: screenWidth } = useWindowDimensions();
     const [activeTab, setActiveTab] = useState<TabType>("Dia");
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<ReportResponse | null>(null);
 
-    const fallbackDia = useMemo<ChartItem[]>(
-        () => [
-            { value: 320, label: "Seg", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 80, frontColor: DANGER_RED },
-            { value: 450, label: "Ter", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 150, frontColor: DANGER_RED },
-            { value: 280, label: "Qua", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 0, frontColor: DANGER_RED },
-            { value: 520, label: "Qui", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 220, frontColor: DANGER_RED },
-            { value: 390, label: "Sex", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 50, frontColor: DANGER_RED },
-            { value: 610, label: "Sáb", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 349, frontColor: DANGER_RED },
-            { value: 180, label: "Dom", frontColor: PRIMARY_BLUE, spacing: 16 },
-            { value: 250, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
-    const fallbackSemana = useMemo<ChartItem[]>(
-        () => [
-            { value: 2100, label: "S1", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 480, frontColor: DANGER_RED },
-            { value: 2800, label: "S2", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 650, frontColor: DANGER_RED },
-            { value: 2340, label: "S3", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 350, frontColor: DANGER_RED },
-            { value: 3200, label: "S4", frontColor: PRIMARY_BLUE, spacing: 20 },
-            { value: 850, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
-    const fallbackMes = useMemo<ChartItem[]>(
-        () => [
-            { value: 8000, label: "Out", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3100, frontColor: DANGER_RED },
-            { value: 9000, label: "Nov", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3500, frontColor: DANGER_RED },
-            { value: 12500, label: "Dez", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 4800, frontColor: DANGER_RED },
-            { value: 8500, label: "Jan", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 3200, frontColor: DANGER_RED },
-            { value: 6000, label: "Fev", frontColor: PRIMARY_BLUE, spacing: 22 },
-            { value: 1358.34, frontColor: DANGER_RED },
-        ],
-        []
-    );
-
-    const formatCurrency = (value: number = 0) => {
-        return value.toLocaleString("pt-BR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        });
-    };
+    const chartWidth = screenWidth - SCREEN_PADDING * 2 - CARD_PADDING * 2 - Y_AXIS_LABEL_WIDTH;
 
     const buildChartData = (
-        source?: Array<{ label: string; vendas: number; gastos: number }>,
-        fallback?: ChartItem[]
+        source?: Array<{ label: string; vendas: number; gastos: number }>
     ): ChartItem[] => {
         if (!source || source.length === 0) {
-            return fallback ?? [];
+            return [];
         }
 
-        const normalized = source.flatMap((item) => [
+        return source.flatMap((item) => [
             {
                 value: Math.max(0, Number(item.vendas ?? 0)),
                 label: item.label,
-                frontColor: PRIMARY_BLUE,
-                spacing: 18,
+                frontColor: SALES_COLOR,
+                spacing: 4,
                 labelTextStyle: {
-                    color: TEXT_MUTED,
-                    fontSize: 12,
+                    color: colors.onInkSoft,
+                    fontSize: 11,
                 },
             },
             {
                 value: Math.max(0, Number(item.gastos ?? 0)),
-                frontColor: DANGER_RED,
+                frontColor: EXPENSES_COLOR,
             },
         ]);
-
-        return normalized;
     };
 
     const chartDataByTab = useMemo(() => {
         return {
-            Dia: buildChartData(stats?.chartData?.dia, fallbackDia),
-            Semana: buildChartData(stats?.chartData?.semana, fallbackSemana),
-            Mês: buildChartData(stats?.chartData?.mes, fallbackMes),
+            Dia: buildChartData(stats?.chartData?.dia),
+            Semana: buildChartData(stats?.chartData?.semana),
+            Mês: buildChartData(stats?.chartData?.mes),
         };
-    }, [stats, fallbackDia, fallbackSemana, fallbackMes]);
+    }, [stats]);
 
-    const getCurrentData = () => {
-        return chartDataByTab[activeTab];
-    };
+    const currentData = chartDataByTab[activeTab];
 
     const getCurrentMaxValue = () => {
-        const values = getCurrentData().map((item) => Number(item.value) || 0);
+        const values = currentData.map((item) => Number(item.value) || 0);
         const max = Math.max(...values, 0);
 
         if (max <= 0) return 100;
@@ -160,7 +103,7 @@ export default function Reports() {
             const response = await api.get("/reports/daily");
             setStats(response.data);
         } catch (error) {
-            console.log("Erro ao carregar relatórios:", error);
+            logError("Erro ao carregar relatórios:", error);
         } finally {
             setLoading(false);
         }
@@ -172,10 +115,9 @@ export default function Reports() {
         }, [])
     );
 
-    const renderTooltip = (item: ChartItem, index: number) => {
+    const renderTooltip = (_item: ChartItem, index: number) => {
         const isVenda = index % 2 === 0;
         const baseIndex = isVenda ? index : index - 1;
-        const currentData = getCurrentData();
 
         const currentLabel = currentData[baseIndex]?.label ?? "";
         const vendaValue = currentData[baseIndex]?.value ?? 0;
@@ -184,333 +126,332 @@ export default function Reports() {
         return (
             <View style={styles.tooltipContainer}>
                 <Text style={styles.tooltipTitle}>{currentLabel}</Text>
-                <Text style={styles.tooltipVendas}>Vendas: R$ {formatCurrency(vendaValue)}</Text>
-                <Text style={styles.tooltipGastos}>Gastos: R$ {formatCurrency(gastoValue)}</Text>
+                <Text style={styles.tooltipLine}>Vendas  {formatBRL(vendaValue)}</Text>
+                <Text style={styles.tooltipLine}>Gastos  {formatBRL(gastoValue)}</Text>
             </View>
         );
     };
 
-    if (loading) {
-        return (
-            <SafeAreaProvider style={styles.container}>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={PRIMARY_BLUE} />
-                    <Text style={styles.loadingText}>Carregando relatórios...</Text>
-                </View>
-            </SafeAreaProvider>
-        );
-    }
+    const lucro = stats?.summary?.lucro ?? 0;
+    const groupCount = currentData.length / 2;
+    // Distribui os grupos de barras na largura disponível.
+    const barWidth = 12;
+    const groupSpacing = groupCount > 0
+        ? Math.max(10, Math.min(28, (chartWidth - 20 - groupCount * (barWidth * 2 + 4)) / groupCount))
+        : 18;
 
     return (
-        <SafeAreaProvider style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Relatórios</Text>
-            </View>
-
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.tabContainer}>
-                    {(["Dia", "Semana", "Mês"] as TabType[]).map((tab) => (
-                        <TouchableOpacity
-                            key={tab}
-                            style={[styles.tabBtn, activeTab === tab && styles.activeTab]}
-                            activeOpacity={0.8}
-                            onPress={() => setActiveTab(tab)}
-                        >
-                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                                {tab}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                <ScreenHeader eyebrow="Visão geral" title="Relatórios" onBack={() => navigation.goBack()} />
 
-                <View style={styles.chartCard}>
-                    <Text style={styles.chartTitle}>Vendas vs Gastos por {activeTab.toLowerCase()}</Text>
-
-                    <View style={styles.chartWrapper}>
-                        <BarChart
-                            data={getCurrentData()}
-                            width={300}
-                            height={220}
-                            barWidth={14}
-                            spacing={18}
-                            initialSpacing={10}
-                            endSpacing={10}
-                            roundedTop
-                            roundedBottom
-                            xAxisThickness={1}
-                            yAxisThickness={0}
-                            noOfSections={4}
-                            maxValue={getCurrentMaxValue()}
-                            yAxisTextStyle={styles.yAxisText}
-                            xAxisLabelTextStyle={styles.xAxisText}
-                            rulesColor={GRID_COLOR}
-                            hideRules={false}
-                            xAxisColor={TEXT_MUTED}
-                            yAxisColor="transparent"
-                            disableScroll
-                            isAnimated
-                            animationDuration={400}
-                            renderTooltip={renderTooltip}
-                            autoCenterTooltip
-                        />
+                <View style={styles.content}>
+                    {/* Seletor de período */}
+                    <View style={styles.tabContainer} accessibilityRole="tablist">
+                        {(["Dia", "Semana", "Mês"] as TabType[]).map((tab) => {
+                            const active = activeTab === tab;
+                            return (
+                                <Pressable
+                                    key={tab}
+                                    style={[styles.tabBtn, active && styles.activeTab]}
+                                    onPress={() => setActiveTab(tab)}
+                                    accessibilityRole="tab"
+                                    accessibilityState={{ selected: active }}
+                                >
+                                    <Text style={[styles.tabText, active && styles.activeTabText]}>{tab}</Text>
+                                </Pressable>
+                            );
+                        })}
                     </View>
 
-                    <View style={styles.legendContainer}>
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendColor, { backgroundColor: PRIMARY_BLUE }]} />
-                            <Text style={[styles.legendText, { color: PRIMARY_BLUE }]}>Vendas</Text>
+                    {loading ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator color={colors.ink} />
+                            <Text style={styles.loadingText}>Carregando relatórios...</Text>
                         </View>
+                    ) : (
+                        <>
+                            <View style={styles.chartCard}>
+                                <View style={styles.chartHeader}>
+                                    <Text style={styles.chartTitle}>Vendas vs gastos</Text>
+                                    <View style={styles.legendContainer}>
+                                        <View style={styles.legendItem}>
+                                            <View style={[styles.legendColor, { backgroundColor: SALES_COLOR }]} />
+                                            <Text style={styles.legendText}>Vendas</Text>
+                                        </View>
+                                        <View style={styles.legendItem}>
+                                            <View style={[styles.legendColor, { backgroundColor: EXPENSES_COLOR }]} />
+                                            <Text style={styles.legendText}>Gastos</Text>
+                                        </View>
+                                    </View>
+                                </View>
 
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendColor, { backgroundColor: DANGER_RED }]} />
-                            <Text style={[styles.legendText, { color: DANGER_RED }]}>Gastos</Text>
-                        </View>
-                    </View>
-                </View>
+                                {currentData.length === 0 ? (
+                                    <View style={styles.chartEmpty}>
+                                        <Text style={styles.chartEmptyText}>Sem movimento nesse período.</Text>
+                                    </View>
+                                ) : (
+                                    <BarChart
+                                        data={currentData}
+                                        width={chartWidth}
+                                        height={200}
+                                        barWidth={barWidth}
+                                        spacing={groupSpacing}
+                                        initialSpacing={10}
+                                        endSpacing={10}
+                                        barBorderTopLeftRadius={4}
+                                        barBorderTopRightRadius={4}
+                                        xAxisThickness={1}
+                                        xAxisColor={colors.inkRaised}
+                                        yAxisThickness={0}
+                                        yAxisColor="transparent"
+                                        yAxisLabelWidth={Y_AXIS_LABEL_WIDTH}
+                                        noOfSections={4}
+                                        maxValue={getCurrentMaxValue()}
+                                        yAxisTextStyle={styles.axisText}
+                                        xAxisLabelTextStyle={styles.axisText}
+                                        rulesColor={colors.inkRaised}
+                                        rulesType="solid"
+                                        disableScroll
+                                        isAnimated
+                                        animationDuration={400}
+                                        renderTooltip={renderTooltip}
+                                        autoCenterTooltip
+                                    />
+                                )}
+                            </View>
 
-                <Text style={styles.sectionTitle}>Resultado do mês</Text>
+                            <Text style={styles.sectionTitle}>Resultado do mês</Text>
 
-                <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: "#FEE2E2" }]}>
-                        <TrendingDown size={22} color={DANGER_RED} />
-                    </View>
-
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Total gasto (compras)</Text>
-                        <Text style={[styles.resultValue, { color: DANGER_RED }]}>
-                            R$ {formatCurrency(stats?.summary?.totalGasto ?? 0)}
-                        </Text>
-                    </View>
-                </View>
-
-                <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: "#DCFCE7" }]}>
-                        <TrendingUp size={22} color={SUCCESS_GREEN} />
-                    </View>
-
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Total vendido</Text>
-                        <Text style={[styles.resultValue, { color: SUCCESS_GREEN }]}>
-                            R$ {formatCurrency(stats?.summary?.totalVendido ?? 0)}
-                        </Text>
-                    </View>
-                </View>
-
-                <View style={styles.resultCard}>
-                    <View style={[styles.iconBox, { backgroundColor: "#E0E7FF" }]}>
-                        <DollarSign size={22} color={PRIMARY_BLUE} />
-                    </View>
-
-                    <View style={styles.resultInfo}>
-                        <Text style={styles.resultLabel}>Lucro (vendas - gastos)</Text>
-                        <Text style={[styles.resultValue, { color: PRIMARY_BLUE }]}>
-                            R$ {formatCurrency(stats?.summary?.lucro ?? 0)}
-                        </Text>
-                    </View>
+                            <View style={styles.group}>
+                                <ResultRow label="Total vendido" value={formatBRL(stats?.summary?.totalVendido ?? 0)} />
+                                <ResultRow
+                                    label="Total gasto (compras)"
+                                    value={`− ${formatBRL(stats?.summary?.totalGasto ?? 0)}`}
+                                    negative
+                                />
+                                <View style={styles.profitRow}>
+                                    <Text style={styles.profitLabel}>Lucro</Text>
+                                    <Text
+                                        style={[styles.profitValue, lucro < 0 && styles.profitNegative]}
+                                        numberOfLines={1}
+                                        adjustsFontSizeToFit
+                                    >
+                                        {formatBRL(lucro)}
+                                    </Text>
+                                    <Text style={styles.profitHint}>vendas − gastos</Text>
+                                </View>
+                            </View>
+                        </>
+                    )}
                 </View>
             </ScrollView>
-        </SafeAreaProvider>
+        </SafeAreaView>
     );
 }
+
+const ResultRow = ({ label, value, negative }: { label: string; value: string; negative?: boolean }) => (
+    <View style={styles.resultRow}>
+        <Text style={styles.resultLabel}>{label}</Text>
+        <Text style={[styles.resultValue, negative && styles.resultNegative]}>{value}</Text>
+    </View>
+);
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: BG_LIGHT,
-        paddingTop: 12,
-    },
-
-    loadingContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 24,
-    },
-
-    loadingText: {
-        marginTop: 12,
-        fontSize: 15,
-        color: TEXT_MUTED,
-        fontWeight: "500",
-    },
-
-    header: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 8,
-    },
-
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: TEXT_DARK,
+        backgroundColor: colors.paper,
     },
 
     scrollContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 110,
+        paddingBottom: spacing.xxxl,
+    },
+
+    content: {
+        paddingHorizontal: SCREEN_PADDING,
+    },
+
+    loadingContainer: {
+        alignItems: "center",
+        paddingVertical: spacing.xxxl * 2,
+        gap: spacing.md,
+    },
+
+    loadingText: {
+        ...type.caption,
     },
 
     tabContainer: {
         flexDirection: "row",
-        backgroundColor: TAB_BG,
-        borderRadius: 16,
+        backgroundColor: colors.sunken,
+        borderRadius: radius.md,
+        borderCurve: 'continuous',
         padding: 4,
-        marginBottom: 16,
+        marginBottom: spacing.md,
     },
 
     tabBtn: {
         flex: 1,
-        paddingVertical: 12,
+        paddingVertical: spacing.sm + 2,
         alignItems: "center",
-        borderRadius: 12,
+        borderRadius: radius.sm,
+        borderCurve: 'continuous',
     },
 
     activeTab: {
-        backgroundColor: CARD_BG,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
+        backgroundColor: colors.ink,
     },
 
     tabText: {
-        fontSize: 15,
-        color: TEXT_MUTED,
+        fontSize: 14,
+        color: colors.inkSoft,
         fontWeight: "600",
     },
 
     activeTabText: {
-        color: TEXT_DARK,
+        color: colors.onInk,
     },
 
     chartCard: {
-        backgroundColor: CARD_BG,
-        borderRadius: 20,
-        padding: 18,
-        marginBottom: 22,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        minHeight: 320,
+        backgroundColor: colors.ink,
+        borderRadius: radius.xl,
+        borderCurve: 'continuous',
+        padding: CARD_PADDING,
+        paddingTop: spacing.xl,
+        overflow: 'hidden',
+    },
+
+    chartHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: spacing.xl,
     },
 
     chartTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: TEXT_DARK,
-        marginBottom: 18,
+        ...type.subheading,
+        color: colors.onInk,
     },
 
-    chartWrapper: {
-        alignItems: "center",
-        justifyContent: "center",
-        paddingRight: 8,
+    chartEmpty: {
+        height: 200,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
-    yAxisText: {
-        color: TEXT_MUTED,
-        fontSize: 12,
+    chartEmptyText: {
+        ...type.caption,
+        color: colors.onInkSoft,
     },
 
-    xAxisText: {
-        color: TEXT_MUTED,
-        fontSize: 12,
+    axisText: {
+        color: colors.onInkSoft,
+        fontSize: 11,
     },
 
     legendContainer: {
         flexDirection: "row",
-        justifyContent: "center",
-        marginTop: 20,
+        gap: spacing.md,
     },
 
     legendItem: {
         flexDirection: "row",
         alignItems: "center",
-        marginHorizontal: 14,
+        gap: 6,
     },
 
     legendColor: {
-        width: 14,
-        height: 14,
-        borderRadius: 3,
-        marginRight: 8,
+        width: 8,
+        height: 8,
+        borderRadius: 2,
     },
 
     legendText: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: "600",
+        color: colors.onInk,
     },
 
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: TEXT_DARK,
-        marginBottom: 14,
+        ...type.eyebrow,
+        marginTop: spacing.xxl,
+        marginBottom: spacing.sm,
     },
 
-    resultCard: {
-        backgroundColor: CARD_BG,
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 18,
-        padding: 16,
-        marginBottom: 12,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+    group: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        paddingHorizontal: spacing.lg,
     },
 
-    iconBox: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    resultInfo: {
-        marginLeft: 14,
-        flex: 1,
+    resultRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: spacing.md + 2,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.line,
     },
 
     resultLabel: {
-        fontSize: 13,
-        color: TEXT_MUTED,
-        marginBottom: 4,
+        ...type.caption,
+        fontSize: 14,
     },
 
     resultValue: {
-        fontSize: 18,
-        fontWeight: "bold",
+        ...type.money,
+    },
+
+    resultNegative: {
+        color: colors.danger,
+    },
+
+    profitRow: {
+        paddingVertical: spacing.lg,
+    },
+
+    profitLabel: {
+        ...type.eyebrow,
+    },
+
+    profitValue: {
+        ...type.display,
+        fontSize: 34,
+        color: colors.ink,
+        marginTop: spacing.xs,
+    },
+
+    profitNegative: {
+        color: colors.danger,
+    },
+
+    profitHint: {
+        ...type.caption,
+        fontSize: 12,
+        marginTop: 2,
     },
 
     tooltipContainer: {
-        backgroundColor: "#1F2937",
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 10,
-        minWidth: 130,
+        backgroundColor: colors.paper,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm + 2,
+        borderRadius: radius.sm,
+        minWidth: 140,
     },
 
     tooltipTitle: {
-        color: "#FFF",
-        fontWeight: "bold",
+        ...type.bodyStrong,
         fontSize: 13,
-        marginBottom: 6,
+        marginBottom: 4,
     },
 
-    tooltipVendas: {
-        color: "#93C5FD",
+    tooltipLine: {
+        ...type.caption,
         fontSize: 12,
-        marginBottom: 2,
-    },
-
-    tooltipGastos: {
-        color: "#FCA5A5",
-        fontSize: 12,
+        color: colors.ink,
+        fontVariant: ['tabular-nums'],
     },
 });

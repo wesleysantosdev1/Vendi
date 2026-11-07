@@ -1,16 +1,22 @@
-import React, {useState, useEffect, useCallback} from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useSaleManager } from "./hooks/useSaleManager";
-import { User, Phone } from "lucide-react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { User, Phone, Package } from "lucide-react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSaleManager } from "./hooks/useSaleManager";
 
 import { ProductChip } from "./components/ProductChip";
 import { OrderSummary } from "./components/OrderSummary";
-import { InputVenda } from "./components/InputVenda";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { TextField } from "../../components/TextField";
+import { Button } from "../../components/Button";
+import { EmptyState } from "../../components/EmptyState";
 
 import { getProductsRequest } from "../../services/productService";
 import { createSale } from "../../services/saleService";
+import { formatBRL } from "../../utils/money";
+import { colors, spacing, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 
 type Product = {
@@ -22,10 +28,10 @@ type Product = {
 
 
 export default function AddSale(){
-    const { 
-        selectedItems, 
-        addItem, 
-        removeItem, 
+    const {
+        selectedItems,
+        addItem,
+        removeItem,
         totalValue,
         clearSale
     } = useSaleManager();
@@ -33,9 +39,10 @@ export default function AddSale(){
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [products, setProducts] = useState<Product[]>([]);
+    const [saving, setSaving] = useState(false);
 
     const maskPhone = (value: string) => {
-        return value 
+        return value
             .replace(/\D/g, "")
             .replace(/^(\d{2})(\d)/g, "($1) $2")
             .replace(/(\d{5})(\d)/, "$1-$2")
@@ -45,21 +52,16 @@ export default function AddSale(){
     useFocusEffect(
         useCallback(() => {
             async function load() {
-                const data = await getProductsRequest();
-                setProducts(data);
+                try {
+                    const data = await getProductsRequest();
+                    setProducts(data);
+                } catch (error) {
+                    logError("Erro ao carregar produtos:", error);
+                }
             }
             load();
         }, [])
     );
-
-    useEffect(() => {
-        async function loadProducts() {
-            const data = await getProductsRequest();
-            setProducts(data);
-        }
-
-        loadProducts();
-    },[])
 
     const handleSave = async () => {
         if (!name || selectedItems.length === 0) {
@@ -73,6 +75,7 @@ export default function AddSale(){
         }));
 
         try {
+            setSaving(true);
             await createSale({
                 customer: { name, phone },
                 items
@@ -81,127 +84,181 @@ export default function AddSale(){
             const updatedProducts = await getProductsRequest();
             setProducts(updatedProducts);
 
-            Alert.alert("Sucesso", "Venda Salva!");
+            Alert.alert("Sucesso", "Venda salva!");
 
             setName("");
             setPhone("");
             clearSale();
-        } catch (error) {
-            console.log("Erro ao salvar venda:", error);
-            Alert.alert("Erro", "Falha ao salvar venda.");
+        } catch (error: any) {
+            logError("Erro ao salvar venda:", error);
+            Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar venda.");
+        } finally {
+            setSaving(false);
         }
     };
 
-    const getAvailableStock = (productId: string, originalStock: number) => {
-        const selected = selectedItems.find(item => item.id === productId);
-        const quantityInCart = selected ? selected.quantity : 0;
+    const getInCart = (productId: string) =>
+        selectedItems.find(item => item.id === productId)?.quantity ?? 0;
 
-        return originalStock - quantityInCart;
-    }
+    const itemCount = selectedItems.reduce((acc, item) => acc + item.quantity, 0);
 
     return(
-        <SafeAreaProvider style={styles.safe}> 
-            <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-                <Text style={styles.title}>Nova Venda</Text>
-
-                <InputVenda 
-                    placeholder="Nome do cliente" 
-                    Icon={User} 
-                    value={name}
-                    onChangeText={setName}
-                />
-                <InputVenda 
-                    placeholder="Telefone (opcional)" 
-                    Icon={Phone} 
-                    keyboardType="phone-pad"
-                    value={phone}
-                    onChangeText={(t) => setPhone(maskPhone(t))}
-                />
-                
-
-                <Text style={styles.subtitle}>Adicionar produtos</Text>
-                <View style={styles.productGrid}>
-                    {products.map(p => {
-                        const availableStock = getAvailableStock(p.id, p.stock);
-
-                        return (
-                            <ProductChip
-                                key={p.id}
-                                label={p.name}
-                                stock={availableStock}
-                                onPress={() => {
-                                    if (availableStock > 0) {
-                                        addItem(p);
-                                    }
-                                }}
-                            />
-                        );
-                    })}
-                </View>
-
-                {selectedItems.length > 0 && (  
-                <OrderSummary 
-                    items={selectedItems} 
-                    onRemove={removeItem} 
-                    total={totalValue} 
-                />
-                )}
-
-                <TouchableOpacity 
-                style={styles.btnSave} 
-                onPress={handleSave}
+        <SafeAreaView style={styles.safe} edges={['top']}>
+            <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <ScrollView
+                    contentContainerStyle={styles.container}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <Text style={styles.btnText}>Salvar Venda</Text>
-                </TouchableOpacity>
-            </ScrollView>
-        </SafeAreaProvider>
+                    <ScreenHeader eyebrow="Registrar" title="Nova venda" />
+
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Cliente</Text>
+                        <TextField
+                            placeholder="Nome do cliente"
+                            Icon={User}
+                            value={name}
+                            onChangeText={setName}
+                            autoCapitalize="words"
+                        />
+                        <TextField
+                            placeholder="Telefone (opcional)"
+                            Icon={Phone}
+                            keyboardType="phone-pad"
+                            value={phone}
+                            onChangeText={(t) => setPhone(maskPhone(t))}
+                        />
+                    </View>
+
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Produtos</Text>
+                        <Text style={styles.sectionHint}>Toque para adicionar. Toque de novo para somar mais um.</Text>
+
+                        {products.length === 0 ? (
+                            <EmptyState
+                                Icon={Package}
+                                title="Nenhum produto cadastrado"
+                                hint="Cadastre produtos na aba Produtos para vender."
+                            />
+                        ) : (
+                            <View style={styles.productGrid}>
+                                {products.map(p => {
+                                    const inCart = getInCart(p.id);
+                                    const availableStock = p.stock - inCart;
+
+                                    return (
+                                        <ProductChip
+                                            key={p.id}
+                                            label={p.name}
+                                            stock={availableStock}
+                                            inCart={inCart}
+                                            onPress={() => {
+                                                if (availableStock > 0) {
+                                                    addItem(p);
+                                                }
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </View>
+                        )}
+                    </View>
+
+                    {selectedItems.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Itens da venda</Text>
+                            <OrderSummary items={selectedItems} onRemove={removeItem} />
+                        </View>
+                    )}
+                </ScrollView>
+
+                {/* Rodapé fixo com total e botão de salvar */}
+                <View style={styles.footer}>
+                    <View style={styles.footerTotal}>
+                        <Text style={styles.footerLabel}>
+                            Total{itemCount > 0 ? ` · ${itemCount} ${itemCount === 1 ? 'item' : 'itens'}` : ''}
+                        </Text>
+                        <Text style={styles.footerValue} numberOfLines={1} adjustsFontSizeToFit>
+                            {formatBRL(totalValue)}
+                        </Text>
+                    </View>
+                    <Button
+                        title="Salvar venda"
+                        onPress={handleSave}
+                        loading={saving}
+                        disabled={selectedItems.length === 0}
+                        style={styles.footerButton}
+                    />
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
-    safe: { 
-        flex: 1, 
-        backgroundColor: '#F8F9FA', 
-        paddingTop: 10
-    },
-    
-    container: { 
-        padding: 20, 
-        paddingBottom: 40 
+    safe: {
+        flex: 1,
+        backgroundColor: colors.paper,
     },
 
-    title: { 
-        fontSize: 24, 
-        fontWeight: 'bold', 
-        color: '#051D3B', 
-        marginBottom: 20 
+    flex: {
+        flex: 1,
     },
 
-    subtitle: { 
-        fontSize: 16, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A', 
-        marginBottom: 15 
+    container: {
+        paddingBottom: spacing.xxl,
     },
 
-    productGrid: { 
-        flexDirection: 'row', 
-        flexWrap: 'wrap' 
+    section: {
+        paddingHorizontal: spacing.xl,
+        marginBottom: spacing.xl,
     },
 
-    btnSave: {
-        backgroundColor: '#4963E4',
-        height: 55,
-        borderRadius: 14,
-        justifyContent: 'center',
+    sectionTitle: {
+        ...type.eyebrow,
+        marginBottom: spacing.sm,
+    },
+
+    sectionHint: {
+        ...type.caption,
+        marginTop: -spacing.xs,
+        marginBottom: spacing.md,
+    },
+
+    productGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: spacing.sm,
+    },
+
+    footer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 30, 
-        marginBottom: 60
+        gap: spacing.lg,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.surface,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.line,
     },
 
-    btnText: { 
-        color: '#FFF', 
-        fontSize: 16, 
-        fontWeight: 'bold' 
-    }
-})
+    footerTotal: {
+        flex: 1,
+    },
+
+    footerLabel: {
+        ...type.eyebrow,
+    },
+
+    footerValue: {
+        ...type.money,
+        fontSize: 24,
+        fontWeight: '800',
+        letterSpacing: -0.6,
+        marginTop: 2,
+    },
+
+    footerButton: {
+        paddingHorizontal: spacing.xxl,
+    },
+});

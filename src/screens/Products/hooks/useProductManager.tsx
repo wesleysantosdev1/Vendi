@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getProductsRequest, createProductRequest, updateProductRequest } from '../../../services/productService';
+import { logError } from "../../../utils/logError";
 
 export interface Product {
     id: string;
@@ -24,7 +25,7 @@ export function useProductManager(){
 
             setProducts(normalizedProducts);
         } catch (error) {
-            console.log('Erro ao buscar produtos', error);
+            logError('Erro ao buscar produtos', error);
         } finally {
             setLoading(false);
         }
@@ -44,7 +45,7 @@ export function useProductManager(){
 
             setProducts((prev) => [...prev, created]);
         } catch (error) {
-            console.log("Erro ao criar produto", error);
+            logError("Erro ao criar produto", error);
         }
     };
 
@@ -61,7 +62,7 @@ export function useProductManager(){
                 prev.map(p => p.id === updated.id ? updated : p)
             );
         } catch (error) {
-            console.log("Erro ao atualizar produto", error);
+            logError("Erro ao atualizar produto", error);
         }
     };
 

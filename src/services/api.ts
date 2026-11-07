@@ -1,8 +1,9 @@
 import axios from "axios";
 
 export const api = axios.create({
-    baseURL: "http://192.168.1.11:3000",
-    timeout: 15000
+    baseURL: "https://vendi-api-wq52.onrender.com",
+    // Render free "dorme" sem uso e a primeira requisição pode levar ~50s.
+    timeout: 60000
 });
 
 export function setAuthToken(token: string | null) {

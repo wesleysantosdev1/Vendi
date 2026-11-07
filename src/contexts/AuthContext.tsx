@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from "react";
 import * as Keychain from "react-native-keychain";
 import { setAuthToken, setUnauthorizedHandler } from "../services/api";
+import { logError } from "../utils/logError";
 
 type User = {
     id: string;
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: any) {
                     setAuthToken(storedToken);
                 }
             } catch (error) {
-                console.log("Erro ao carregar sessão salva:", error);
+                logError("Erro ao carregar sessão salva:", error);
             } finally {
                 setLoading(false);
             }

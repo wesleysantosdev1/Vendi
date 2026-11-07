@@ -16,6 +16,7 @@ import { getProductsRequest } from "../../services/productService";
 import { createSale } from "../../services/saleService";
 import { formatBRL } from "../../utils/money";
 import { colors, spacing, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 
 type Product = {
@@ -55,7 +56,7 @@ export default function AddSale(){
                     const data = await getProductsRequest();
                     setProducts(data);
                 } catch (error) {
-                    console.log("Erro ao carregar produtos:", error);
+                    logError("Erro ao carregar produtos:", error);
                 }
             }
             load();
@@ -89,7 +90,7 @@ export default function AddSale(){
             setPhone("");
             clearSale();
         } catch (error: any) {
-            console.log("Erro ao salvar venda:", error);
+            logError("Erro ao salvar venda:", error);
             Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar venda.");
         } finally {
             setSaving(false);

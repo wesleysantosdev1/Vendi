@@ -13,6 +13,7 @@ import { SupportModal } from './components/SupportModal';
 import { EditProfileModal } from './components/EditProfileModal';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { colors, spacing, radius, type } from '../../theme';
+import { logError } from "../../utils/logError";
 
 
 export default function ProfileScreen() {
@@ -35,7 +36,7 @@ export default function ProfileScreen() {
                 stats: response.data.stats
             });
         } catch (error) {
-            console.log("Erro ao carregar perfil", error)
+            logError("Erro ao carregar perfil", error)
         } finally {
             setLoading(false);
         }

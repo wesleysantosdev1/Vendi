@@ -13,6 +13,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { getSales } from "../../services/saleService";
 import { Sale } from "../../types/sale";
 import { colors, spacing } from "../../theme";
+import { logError } from "../../utils/logError";
 
 type NavigationProp = NativeStackNavigationProp<
     RootStackParamList,
@@ -40,7 +41,7 @@ export default function SalesList(){
             }));
             setSales(formatted);
         } catch (error) {
-            console.log("Erro ao carregar vendas:", error);
+            logError("Erro ao carregar vendas:", error);
         } finally {
             setRefreshing(false);
         }

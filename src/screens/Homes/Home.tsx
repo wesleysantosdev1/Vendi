@@ -17,6 +17,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { Button } from "../../components/Button";
 import { formatBRL } from "../../utils/money";
 import { colors, spacing, radius, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 type NavigationProp = BottomTabNavigationProp<
     TabParamList,
@@ -66,7 +67,7 @@ export default function HomeScreen() {
             }));
             setRecentSales(latestFour);
         } catch (error) {
-            console.error("Erro ao carregar vendas recentes", error);
+            logError("Erro ao carregar vendas recentes", error);
         } finally {
             setRefreshing(false);
         }

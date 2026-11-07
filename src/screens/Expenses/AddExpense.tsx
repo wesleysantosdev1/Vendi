@@ -12,6 +12,7 @@ import { Button } from '../../components/Button';
 import { BottomSheet } from '../../components/BottomSheet';
 import { EmptyState } from '../../components/EmptyState';
 import { colors, spacing, radius, type } from '../../theme';
+import { logError } from "../../utils/logError";
 
 type ExpenseType = 'merchandise' | 'operational';
 
@@ -39,7 +40,7 @@ export default function AddExpense() {
                 const response = await api.get('/products');
                 setProductsList(response.data);
             } catch (error) {
-                console.log("Erro ao carregar a lista de produtos:", error);
+                logError("Erro ao carregar a lista de produtos:", error);
             }
         }
 
@@ -83,7 +84,7 @@ export default function AddExpense() {
             Alert.alert("Sucesso", "Gasto registrado!");
             navigation.goBack();
         } catch (error: any) {
-            console.log("Erro ao salvar gasto:", error);
+            logError("Erro ao salvar gasto:", error);
             Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar no servidor.");
         } finally {
             setSaving(false);

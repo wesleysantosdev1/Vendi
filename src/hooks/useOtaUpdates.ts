@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import * as Updates from 'expo-updates';
+import { logError } from "../utils/logError";
 
 // Comportamento de atualização OTA (EAS Update) por canal:
 //
@@ -47,7 +48,7 @@ export function useOtaUpdates() {
       } catch (error) {
         // Sem internet ou servidor de updates fora: o app segue na versão atual.
         // Não é ação do usuário, então não mostra Alert — só registra.
-        console.log('Falha ao checar atualização OTA', error);
+        logError('Falha ao checar atualização OTA', error);
       } finally {
         isChecking.current = false;
       }

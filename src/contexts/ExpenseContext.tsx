@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from "react";
 import { api } from "../services/api";
+import { logError } from "../utils/logError";
 
 export interface Expense {
     id: string;
@@ -42,7 +43,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
             setExpenses(formattedData);
         } catch (error) {
-            console.error("Erro ao carregar despesas:", error);
+            logError("Erro ao carregar despesas:", error);
         }
     }, []);
 

@@ -5,6 +5,7 @@ import { BottomSheet } from '../../../components/BottomSheet';
 import { TextField } from '../../../components/TextField';
 import { Button } from '../../../components/Button';
 import { spacing } from '../../../theme';
+import { logError } from "../../../utils/logError";
 
 interface Props {
     visible: boolean;
@@ -39,7 +40,7 @@ export const SupportModal = ({ visible, onClose }: Props) => {
                 }
             })
             .catch((error) => {
-                console.error("Erro ao abrir WhatsApp", error)
+                logError("Erro ao abrir WhatsApp", error)
                 Alert.alert("Erro", "Não foi possível abrir o WhatsApp.")
             })
             .finally(() => {

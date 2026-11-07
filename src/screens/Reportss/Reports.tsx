@@ -7,6 +7,7 @@ import { api } from "../../services/api";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { formatBRL } from "../../utils/money";
 import { colors, spacing, radius, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 type TabType = "Dia" | "Semana" | "Mês";
 
@@ -102,7 +103,7 @@ export default function Reports() {
             const response = await api.get("/reports/daily");
             setStats(response.data);
         } catch (error) {
-            console.log("Erro ao carregar relatórios:", error);
+            logError("Erro ao carregar relatórios:", error);
         } finally {
             setLoading(false);
         }

@@ -12,6 +12,7 @@ import { Button } from "../../components/Button";
 import { BottomSheet } from "../../components/BottomSheet";
 import { EmptyState } from "../../components/EmptyState";
 import { colors, spacing, radius, type } from "../../theme";
+import { logError } from "../../utils/logError";
 
 export default function Productos(){
     const { products, addProduct, updateProduct, loading, loadProducts } = useProductManager();
@@ -52,7 +53,7 @@ export default function Productos(){
             setDeleteModalVisible(false);
             loadProducts();
         } catch (error: any) {
-            console.log("Erro ao excluir produto:", error);
+            logError("Erro ao excluir produto:", error);
             Alert.alert("Erro", error.response?.data?.error || "Não foi possível excluir o produto.");
         } finally {
             setDeleting(false);

@@ -6,6 +6,7 @@ import { BottomSheet } from "../../../components/BottomSheet";
 import { TextField } from "../../../components/TextField";
 import { Button } from "../../../components/Button";
 import { spacing } from "../../../theme";
+import { logError } from "../../../utils/logError";
 
 interface Props {
     visible: boolean;
@@ -37,7 +38,7 @@ export const EditProfileModal = ({ visible, onClose, initialData }: Props ) => {
             Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
             onClose();
         } catch (error: any) {
-            console.log("Erro ao salvar perfil: ", error);
+            logError("Erro ao salvar perfil: ", error);
             Alert.alert("Erro", error.response?.data?.error || "Não foi possível atualizar o perfil.");
         } finally {
             setSaving(false);

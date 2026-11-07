@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Sobrescreve o network_security_config de src/main/res/xml só em builds debug
-  (Gradle mescla por build type). Adiciona 10.0.2.2/localhost, necessários pro
-  Metro (bundler) em dev — sem isso o app trava carregando o bundle no emulador/
-  dispositivo em debug. O build de release usa só o arquivo de src/main, que não
-  inclui esses domínios.
+  Build de debug: libera cleartext HTTP pra qualquer domínio, sem lista de IP.
+  O IP do back muda toda vez que a máquina reconecta no Wi-Fi, então travar
+  isso num domain-config específico aqui obrigava editar este arquivo junto
+  com src/services/api.ts sempre que o IP mudasse. Como isso só entra em
+  builds debug (nunca vai pro usuário final), não tem o mesmo risco que teria
+  em release — o único lugar que precisa mudar agora é o baseURL em
+  src/services/api.ts.
+  Build de release usa só o network_security_config de src/main, que continua
+  restrito por domínio (e deve virar HTTPS antes de qualquer release real).
 -->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">192.168.1.11</domain>
-        <domain includeSubdomains="false">10.0.2.2</domain>
-        <domain includeSubdomains="false">localhost</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

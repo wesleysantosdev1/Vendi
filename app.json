@@ -1,4 +1,21 @@
 {
   "name": "Vendi",
-  "displayName": "Vendi"
+  "displayName": "Vendi",
+  "expo": {
+    "name": "Vendi",
+    "slug": "vendi",
+    "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1252cbad-3a2b-4bfd-b340-9cc20634e0f1"
+      }
+    },
+    "owner": "vendiapp",
+    "updates": {
+      "url": "https://u.expo.dev/1252cbad-3a2b-4bfd-b340-9cc20634e0f1"
+    }
+  }
 }

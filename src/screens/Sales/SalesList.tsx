@@ -1,16 +1,19 @@
-import React, {useState, useCallback} from "react";
-import {View, Text, StyleSheet, FlatList, TextInput } from 'react-native';
-import { Search } from 'lucide-react-native';
-import { SaleItem } from "./components/SaleItem";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Search, ShoppingBag } from 'lucide-react-native';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigations/types";
 
+import { SaleItem } from "./components/SaleItem";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { TextField } from "../../components/TextField";
+import { EmptyState } from "../../components/EmptyState";
 import { getSales } from "../../services/saleService";
 import { Sale } from "../../types/sale";
-import { RefreshControl } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { colors, spacing } from "../../theme";
+import { logError } from "../../utils/logError";
 
 type NavigationProp = NativeStackNavigationProp<
     RootStackParamList,
@@ -33,10 +36,12 @@ export default function SalesList(){
                 phone: sale.customerPhone,
                 date: new Date(sale.createdAt).toLocaleDateString('pt-BR'),
                 items: sale.items.reduce((acc: number, item: any) => acc + item.quantity, 0),
-                value: sale.total, 
-                fullItems: sale.items 
+                value: sale.total,
+                fullItems: sale.items
             }));
             setSales(formatted);
+        } catch (error) {
+            logError("Erro ao carregar vendas:", error);
         } finally {
             setRefreshing(false);
         }
@@ -48,24 +53,25 @@ export default function SalesList(){
         }, [])
     );
 
-    const filteredSales = sales.filter((sale) => 
-        sale.name.toLowerCase().includes(searchText.toLowerCase())
+    const filteredSales = sales.filter((sale) =>
+        (sale.name ?? '').toLowerCase().includes(searchText.toLowerCase())
     );
 
     return(
-        <SafeAreaProvider style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Vendas</Text>
-            </View>
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <ScreenHeader
+                eyebrow={`${sales.length} ${sales.length === 1 ? 'venda' : 'vendas'}`}
+                title="Vendas"
+            />
 
-            <View style={styles.searchContainer}>
-                <Search size={20} color="#828489" />
-                <TextInput 
-                placeholder="Buscar vendas..." 
-                style={styles.searchInput}
-                placeholderTextColor="#828489"
-                value={searchText}
-                onChangeText={setSearchText}
+            <View style={styles.search}>
+                <TextField
+                    Icon={Search}
+                    placeholder="Buscar por cliente"
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    returnKeyType="search"
+                    containerStyle={styles.searchField}
                 />
             </View>
 
@@ -73,61 +79,52 @@ export default function SalesList(){
                 data={filteredSales}
                 keyExtractor={(item) => item.id}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={loadSales} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={loadSales}
+                        colors={[colors.ink]}
+                        tintColor={colors.ink}
+                    />
                 }
                 renderItem={({ item }) => (
-                    <SaleItem 
-                        data={{...item, value: item.value.toFixed(2)}} 
-                        onPress={() => navigation.navigate('SaleDetails', { sale: item })} 
+                    <SaleItem
+                        data={item}
+                        onPress={() => navigation.navigate('SaleDetails', { sale: item })}
                     />
                 )}
+                ListEmptyComponent={
+                    refreshing ? undefined : (
+                        <EmptyState
+                            Icon={ShoppingBag}
+                            title={searchText ? 'Nenhuma venda encontrada' : 'Nenhuma venda ainda'}
+                            hint={searchText ? 'Tente buscar por outro nome.' : 'As vendas registradas aparecem aqui.'}
+                        />
+                    )
+                }
                 contentContainerStyle={styles.listContent}
+                keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             />
-        </SafeAreaProvider>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        backgroundColor: '#F8F9FA', 
-        paddingTop: 10
+    container: {
+        flex: 1,
+        backgroundColor: colors.paper,
     },
 
-    header: { 
-        paddingHorizontal: 20, 
-        paddingTop: 20, 
-        paddingBottom: 15 
+    search: {
+        paddingHorizontal: spacing.xl,
     },
 
-    title: { 
-        fontSize: 24, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A' 
+    searchField: {
+        marginBottom: spacing.sm,
     },
 
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#EEF0F2',
-        marginHorizontal: 20,
-        borderRadius: 12,
-        paddingHorizontal: 15,
-        height: 48,
-        marginBottom: 20,
+    listContent: {
+        paddingHorizontal: spacing.xl,
+        paddingBottom: spacing.xxxl,
     },
-
-    searchInput: { 
-        flex: 1, 
-        fontSize: 15, 
-        marginLeft: 10, 
-        color: '#000'
-    },
-
-    listContent: { 
-        paddingHorizontal: 20, 
-        paddingBottom: 100 
-    },
-
 })

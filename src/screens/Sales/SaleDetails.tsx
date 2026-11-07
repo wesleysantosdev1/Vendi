@@ -1,8 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { ArrowLeft } from "lucide-react-native";
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ScreenHeader } from "../../components/ScreenHeader";
+import { formatBRL } from "../../utils/money";
+import { colors, spacing, radius, type } from "../../theme";
 
 
 export default function SaleDetails() {
@@ -11,177 +13,218 @@ export default function SaleDetails() {
     const { sale } = route.params as any;
 
     const total = Number(sale.value) || 0;
+    const items: any[] = sale.fullItems ?? [];
 
     return (
-        <SafeAreaProvider style={styles.safe}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                    <ArrowLeft size={16} color="#4963E4" />
-                    <Text style={styles.backText}>Voltar</Text>
-                </TouchableOpacity>
+        <SafeAreaView style={styles.safe} edges={['top']}>
+            <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+                <ScreenHeader eyebrow="Venda" title={sale.name} onBack={() => navigation.goBack()} />
 
-                <Text style={styles.title}>Detalhes da Venda</Text>
-
-                <View style={styles.card}>
-                    {/* Linha do Cliente */}
-                    <View style={styles.infoRow}>
-                        <Text style={styles.label}>Cliente</Text>
-                        <Text style={styles.infoValueBold}>{sale.name}</Text>
+                <View style={styles.content}>
+                    {/* Total em destaque */}
+                    <View style={styles.hero}>
+                        <Text style={styles.heroLabel}>Total da venda</Text>
+                        <Text style={styles.heroValue} numberOfLines={1} adjustsFontSizeToFit>
+                            {formatBRL(total)}
+                        </Text>
                     </View>
 
-                    {/* Linha do Telefone (NOVO) */}
-                    <View style={styles.infoRow}>
-                        <Text style={styles.label}>Telefone</Text>
-                        <Text style={styles.infoValue}>{sale.phone || 'Não informado'}</Text>
-                    </View>
-                    
-                    <View style={styles.infoRow}>
-                        <Text style={styles.label}>Data</Text>
-                        <Text style={styles.infoValue}>{sale.date}</Text>
+                    <View style={styles.group}>
+                        <InfoRow label="Cliente" value={sale.name} strong />
+                        <InfoRow label="Telefone" value={sale.phone || 'Não informado'} />
+                        <InfoRow label="Data" value={sale.date} />
+                        <InfoRow label="Itens" value={`${sale.items} ${sale.items === 1 ? 'item' : 'itens'}`} last />
                     </View>
 
-                    <View style={styles.infoRow}>
-                        <Text style={styles.label}>Itens</Text>
-                        <Text style={styles.infoValue}>{sale.items} itens</Text>
-                    </View>
+                    {/* Cupom com os produtos */}
+                    <Text style={styles.sectionTitle}>Produtos</Text>
+                    <View style={styles.receipt}>
+                        {items.length === 0 ? (
+                            <Text style={styles.emptyText}>Nenhum produto nesta venda.</Text>
+                        ) : (
+                            items.map((item: any, index: number) => (
+                                <View key={item.id ?? index} style={styles.productRow}>
+                                    <Text style={styles.productQty}>{item.quantity}×</Text>
+                                    <View style={styles.productInfo}>
+                                        <Text style={styles.productName} numberOfLines={2}>
+                                            {item.product?.name ?? 'Produto removido'}
+                                        </Text>
+                                        <Text style={styles.productUnit}>{formatBRL(item.price)} cada</Text>
+                                    </View>
+                                    <Text style={styles.productPrice}>
+                                        {formatBRL((item.price ?? 0) * (item.quantity ?? 0))}
+                                    </Text>
+                                </View>
+                            ))
+                        )}
 
-                    <View style={styles.divider} />
+                        <View style={styles.receiptDivider} />
 
-                    <View style={styles.totalRow}>
-                        <Text style={styles.totalLabel}>Total</Text>
-                        <Text style={styles.totalValue}>R$ {total.toFixed(2)}</Text>
-                    </View>
-                </View>
-
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Produtos</Text>
-                    {sale.fullItems?.map((item: any, index: number) => (
-                        <View key={index} style={styles.productRow}>
-                            <View>
-                                <Text style={styles.productName}>{item.product.name}</Text>
-                                <Text style={styles.label}>{item.quantity}x R$ {item.price.toFixed(2)}</Text>
-                            </View>
-                            <Text style={styles.productPrice}>
-                                R$ {(item.price * item.quantity).toFixed(2)}
-                            </Text>
+                        <View style={styles.totalRow}>
+                            <Text style={styles.totalLabel}>Total</Text>
+                            <Text style={styles.totalValue}>{formatBRL(total)}</Text>
                         </View>
-                    ))}
+                    </View>
                 </View>
             </ScrollView>
-        </SafeAreaProvider>
+        </SafeAreaView>
     );
 }
+
+interface InfoRowProps {
+    label: string;
+    value: string;
+    strong?: boolean;
+    last?: boolean;
+}
+
+const InfoRow = ({ label, value, strong, last }: InfoRowProps) => (
+    <View style={[styles.infoRow, !last && styles.infoRowBorder]}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={[styles.infoValue, strong && styles.infoValueStrong]} numberOfLines={1}>{value}</Text>
+    </View>
+);
 
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: 30
+        backgroundColor: colors.paper,
     },
 
     container: {
-        padding: 20,
+        paddingBottom: spacing.xxxl,
     },
 
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
+    content: {
+        paddingHorizontal: spacing.xl,
     },
 
-    backText: {
-        color: '#4963E4',
-        fontSize: 16,
-        marginLeft: 5,
+    hero: {
+        backgroundColor: colors.ink,
+        borderRadius: radius.xl,
+        borderCurve: 'continuous',
+        padding: spacing.xl,
+        marginBottom: spacing.md,
     },
 
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#051D3B',
-        marginBottom: 25,
+    heroLabel: {
+        ...type.eyebrow,
+        color: colors.onInkSoft,
     },
 
-    card: {
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 20,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
+    heroValue: {
+        ...type.display,
+        color: colors.lime,
+        marginTop: spacing.sm,
+    },
+
+    group: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        paddingHorizontal: spacing.lg,
     },
 
     infoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 15,
+        alignItems: 'center',
+        gap: spacing.lg,
+        paddingVertical: spacing.md + 2,
     },
 
-    label: {
-        color: '#828489',
-        fontSize: 15,
+    infoRowBorder: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.line,
+    },
+
+    infoLabel: {
+        ...type.caption,
+        fontSize: 14,
     },
 
     infoValue: {
-        color: '#1A1A1A',
-        fontSize: 15,
+        ...type.body,
+        flexShrink: 1,
+        textAlign: 'right',
     },
 
-    infoValueBold: {
-        color: '#1A1A1A',
-        fontSize: 15,
-        fontWeight: 'bold',
+    infoValueStrong: {
+        fontWeight: '700',
     },
 
-    divider: {
+    sectionTitle: {
+        ...type.eyebrow,
+        marginTop: spacing.xxl,
+        marginBottom: spacing.sm,
+    },
+
+    receipt: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        padding: spacing.lg,
+    },
+
+    emptyText: {
+        ...type.caption,
+        textAlign: 'center',
+        paddingVertical: spacing.md,
+    },
+
+    productRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: spacing.md,
+        paddingVertical: spacing.sm,
+    },
+
+    productQty: {
+        ...type.money,
+        minWidth: 28,
+    },
+
+    productInfo: {
+        flex: 1,
+    },
+
+    productName: {
+        ...type.bodyStrong,
+    },
+
+    productUnit: {
+        ...type.caption,
+        fontSize: 12,
+        marginTop: 2,
+    },
+
+    productPrice: {
+        ...type.money,
+    },
+
+    receiptDivider: {
         height: 1,
-        backgroundColor: '#F0F2F5',
-        marginVertical: 10,
+        backgroundColor: colors.line,
+        marginVertical: spacing.md,
     },
 
     totalRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
+        alignItems: 'baseline',
     },
 
     totalLabel: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
+        ...type.subheading,
     },
 
     totalValue: {
+        ...type.money,
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#21C45D', 
+        fontWeight: '800',
     },
-
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1A1A1A',
-        marginBottom: 20,
-    },
-
-    productRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-
-    productName: {
-        color: '#828489',
-        fontSize: 15,
-    },
-
-    productPrice: {
-        color: '#1A1A1A',
-        fontSize: 15,
-        fontWeight: 'bold',
-    }
 });

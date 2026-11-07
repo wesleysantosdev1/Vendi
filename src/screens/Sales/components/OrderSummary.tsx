@@ -1,115 +1,92 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Trash2 } from 'lucide-react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { X } from 'lucide-react-native';
+import { formatBRL } from '../../../utils/money';
+import { colors, spacing, radius, type, hitSlop } from '../../../theme';
 
-interface Props { 
-    items: any[]; 
-    onRemove: (id: string) => void; 
-    total: number; 
+interface Props {
+    items: { id: string; name: string; price: number; quantity: number }[];
+    onRemove: (id: string) => void;
 }
 
-export const OrderSummary = ({ items, onRemove, total }: Props) => (
-    <View style={styles.container}>
-        <Text style={styles.title}>Itens da venda</Text>
-        <View style={styles.card}>
-        {items.map((item) => (
-            <View key={item.id} style={styles.itemRow}>
-                <View>
-                    <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemSub}>{item.quantity}x R$ {item.price.toFixed(2)}</Text>
+// Itens da venda em formato de cupom: quantidade, nome, subtotal e botão de remover.
+export const OrderSummary = ({ items, onRemove }: Props) => (
+    <View style={styles.card}>
+        {items.map((item, index) => (
+            <View key={item.id} style={[styles.itemRow, index > 0 && styles.itemRowBorder]}>
+                <Text style={styles.qty}>{item.quantity}×</Text>
+                <View style={styles.itemInfo}>
+                    <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={styles.itemSub}>{formatBRL(item.price)} cada</Text>
                 </View>
-                <View style={styles.right}>
-                    <Text style={styles.itemPrice}>R$ {(item.price * item.quantity).toFixed(2)}</Text>
-                    <TouchableOpacity onPress={() => onRemove(item.id)}>
-                        <Trash2 size={18} color="#EF4444" />
-                    </TouchableOpacity>
-                </View>
+                <Text style={styles.itemPrice}>{formatBRL(item.price * item.quantity)}</Text>
+                <Pressable
+                    onPress={() => onRemove(item.id)}
+                    hitSlop={hitSlop}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remover ${item.name}`}
+                    style={styles.remove}
+                >
+                    <X size={14} color={colors.inkSoft} strokeWidth={2.5} />
+                </Pressable>
             </View>
         ))}
-
-            <View style={styles.divider} />
-            
-            <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>R$ {total.toFixed(2)}</Text>
-            </View>
-        </View>
     </View>
 );
 
 const styles = StyleSheet.create({
-    container: { 
-        marginTop: 20 
+    card: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        paddingHorizontal: spacing.lg,
     },
 
-    title: { 
-        fontSize: 16, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A', 
-        marginBottom: 12 
+    itemRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingVertical: spacing.md,
     },
 
-    card: { 
-        backgroundColor: '#FFF', 
-        borderRadius: 16, 
-        padding: 16,
-        elevation: 3, 
-        shadowColor: '#000', 
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05, 
-        shadowRadius: 10 
+    itemRowBorder: {
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.line,
     },
 
-    itemRow: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 12 
+    qty: {
+        ...type.money,
+        minWidth: 28,
     },
 
-    itemName: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A' 
+    itemInfo: {
+        flex: 1,
     },
 
-    itemSub: { 
-        fontSize: 12, 
-        color: '#828489' 
+    itemName: {
+        ...type.bodyStrong,
+        fontSize: 14,
     },
 
-    right: { 
-        flexDirection: 'row', 
-        alignItems: 'center' 
+    itemSub: {
+        ...type.caption,
+        fontSize: 12,
+        marginTop: 1,
     },
 
-    itemPrice: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        marginRight: 12 
+    itemPrice: {
+        ...type.money,
+        fontSize: 14,
     },
 
-    divider: { 
-        height: 1, 
-        backgroundColor: '#F0F2F5', 
-        marginVertical: 10 
-    },
-
-    totalRow: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
-    },
-
-    totalLabel: { 
-        fontSize: 16, 
-        fontWeight: 'bold',
-        color: '#1A1A1A'
-    },
-
-    totalValue: { 
-        fontSize: 18, 
-        fontWeight: 'bold', 
-        color: '#21C45D' 
+    remove: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: colors.sunken,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

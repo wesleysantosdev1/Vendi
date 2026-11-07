@@ -1,16 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { User, LifeBuoy, LogOut } from 'lucide-react-native';
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFocusEffect } from '@react-navigation/native';
+import * as Updates from 'expo-updates';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import * as Updates from 'expo-updates';
 import formatDateTime from '../../utils/date';
 
 import { StatCard, MenuItem } from './components/ProfileComponents';
 import { SupportModal } from './components/SupportModal';
 import { EditProfileModal } from './components/EditProfileModal';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { colors, spacing, radius, type } from '../../theme';
 
 
 export default function ProfileScreen() {
@@ -18,10 +20,10 @@ export default function ProfileScreen() {
     const [editModal, setEditModal] = useState(false);
     const [supportModal, setSupportModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [userData, setUserData] = useState({ 
-        name: '', 
+    const [userData, setUserData] = useState({
+        name: '',
         email: '',
-        stats: { sales: 0, products: 0, clients: 0 } // Adicionamos os stats aqui
+        stats: { sales: 0, products: 0, clients: 0 }
     });
 
     const loadProfile = async () => {
@@ -29,7 +31,7 @@ export default function ProfileScreen() {
             const response = await api.get('/users/me');
             setUserData({
                 name: response.data.name,
-                email: response.data.email, 
+                email: response.data.email,
                 stats: response.data.stats
             });
         } catch (error) {
@@ -57,65 +59,77 @@ export default function ProfileScreen() {
 
 
     return (
-        <SafeAreaProvider style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['top']}>
             <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-                {loading ? (
-                    <ActivityIndicator size="large" color="#4963E4" style={{ marginTop: 50}} />
-                ) : (
-                    <>
-                        <View style={styles.header}>
-                            <View style={styles.avatarContainer}>
-                                <Text style={styles.avatarText}>{getInitials(userData.name)}</Text>
+                <ScreenHeader title="Perfil" />
+
+                <View style={styles.content}>
+                    {loading ? (
+                        <ActivityIndicator color={colors.ink} style={styles.loading} />
+                    ) : (
+                        <>
+                            <View style={styles.identity}>
+                                <View style={styles.avatar}>
+                                    <Text style={styles.avatarText}>{getInitials(userData.name)}</Text>
+                                </View>
+                                <View style={styles.identityTexts}>
+                                    <Text style={styles.userName} numberOfLines={1}>{userData.name}</Text>
+                                    <Text style={styles.userEmail} numberOfLines={1}>{userData.email}</Text>
+                                </View>
                             </View>
-                            <Text style={styles.userName}>{userData.name}</Text>
-                            <Text style={styles.userEmail}>{userData.email}</Text>
-                        </View>
 
-                        <View style={styles.statsRow}>
-                            <StatCard label="Vendas" value={userData.stats?.sales || 0} />
-                            <StatCard label="Produtos" value={userData.stats?.products || 0} />
-                            <StatCard label="Clientes" value={userData.stats?.clients || 0} />
-                        </View>
+                            <View style={styles.group}>
+                                <View style={styles.statsRow}>
+                                    <StatCard label="Vendas" value={userData.stats?.sales || 0} />
+                                    <View style={styles.statsDivider} />
+                                    <StatCard label="Produtos" value={userData.stats?.products || 0} />
+                                    <View style={styles.statsDivider} />
+                                    <StatCard label="Clientes" value={userData.stats?.clients || 0} />
+                                </View>
+                            </View>
 
-                        <View style={styles.menuSection}>
-                            <MenuItem 
-                                Icon={User} 
-                                label="Dados pessoais" 
-                                onPress={() => setEditModal(true)} 
-                            />
+                            <Text style={styles.sectionTitle}>Conta</Text>
+                            <View style={styles.group}>
+                                <MenuItem
+                                    Icon={User}
+                                    label="Dados pessoais"
+                                    onPress={() => setEditModal(true)}
+                                />
+                                <MenuItem
+                                    Icon={LifeBuoy}
+                                    label="Suporte"
+                                    onPress={() => setSupportModal(true)}
+                                    last
+                                />
+                            </View>
 
-                            <MenuItem 
-                                Icon={LifeBuoy} 
-                                label="Suporte" 
-                                onPress={() => setSupportModal(true)} 
-                            />
-                        </View>
+                            <View style={[styles.group, styles.logoutGroup]}>
+                                <MenuItem
+                                    Icon={LogOut}
+                                    label="Sair da conta"
+                                    tone="danger"
+                                    onPress={() => signOut()}
+                                    last
+                                />
+                            </View>
+                        </>
+                    )}
 
-                        <TouchableOpacity
-                            style={styles.logoutBtn}
-                            activeOpacity={0.7}
-                            onPress={() => signOut()}
-                        >
-                            <LogOut size={20} color="#EF4444" />
-                            <Text style={styles.logoutText}>Sair da conta</Text>
-                        </TouchableOpacity>
-                    </>
-                )}
-
-                <Text style={styles.versionText}>{getVersionLabel()}</Text>
+                    <Text style={styles.versionText}>{getVersionLabel()}</Text>
+                </View>
             </ScrollView>
 
-            <EditProfileModal 
-                visible={editModal} 
-                onClose={() => {setEditModal(false); loadProfile(); }} 
+            <EditProfileModal
+                visible={editModal}
+                onClose={() => {setEditModal(false); loadProfile(); }}
                 initialData={userData}
             />
 
-            <SupportModal 
-                visible={supportModal} 
-                onClose={() => setSupportModal(false)} 
+            <SupportModal
+                visible={supportModal}
+                onClose={() => setSupportModal(false)}
             />
-        </SafeAreaProvider>
+        </SafeAreaView>
     );
 }
 
@@ -132,82 +146,94 @@ function getVersionLabel() {
 }
 
 const styles = StyleSheet.create({
+    safe: {
+        flex: 1,
+        backgroundColor: colors.paper,
+    },
+
+    container: {
+        paddingBottom: spacing.xxxl,
+    },
+
+    content: {
+        paddingHorizontal: spacing.xl,
+    },
+
+    loading: {
+        marginTop: spacing.xxxl,
+    },
+
+    identity: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.lg,
+        marginBottom: spacing.xl,
+    },
+
+    avatar: {
+        width: 64,
+        height: 64,
+        borderRadius: radius.lg + 4,
+        borderCurve: 'continuous',
+        backgroundColor: colors.ink,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    avatarText: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: colors.lime,
+        letterSpacing: -0.5,
+    },
+
+    identityTexts: {
+        flex: 1,
+    },
+
+    userName: {
+        ...type.heading,
+    },
+
+    userEmail: {
+        ...type.caption,
+        marginTop: 2,
+    },
+
+    group: {
+        backgroundColor: colors.surface,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: colors.line,
+        overflow: 'hidden',
+    },
+
+    statsRow: {
+        flexDirection: 'row',
+    },
+
+    statsDivider: {
+        width: StyleSheet.hairlineWidth,
+        backgroundColor: colors.line,
+        marginVertical: spacing.md,
+    },
+
+    sectionTitle: {
+        ...type.eyebrow,
+        marginTop: spacing.xxl,
+        marginBottom: spacing.sm,
+    },
+
+    logoutGroup: {
+        marginTop: spacing.md,
+    },
+
     versionText: {
-        marginTop: 24,
-        textAlign: 'center',
+        ...type.caption,
         fontSize: 12,
-        color: '#828489'
+        color: colors.inkFaint,
+        textAlign: 'center',
+        marginTop: spacing.xxl,
     },
-
-    safe: { 
-        flex: 1, 
-        backgroundColor: '#F8F9FA' 
-    },
-
-    container: { 
-        padding: 20, 
-        paddingBottom: 100 
-    },
-
-    header: { 
-        alignItems: 'center', 
-        marginTop: 20, 
-        marginBottom: 30 
-    },
-
-    avatarContainer: { 
-        width: 100, 
-        height: 100, 
-        borderRadius: 50, 
-        backgroundColor: '#EBEFFF', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        marginBottom: 15 
-    },
-
-    avatarText: { 
-        fontSize: 32, 
-        fontWeight: 'bold', 
-        color: '#4963E4' 
-    },
-
-    userName: { 
-        fontSize: 22, 
-        fontWeight: 'bold', 
-        color: '#051D3B' 
-    },
-
-    userEmail: { 
-        fontSize: 14, 
-        color: '#828489', 
-        marginTop: 4 
-    },
-
-    statsRow: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginBottom: 30 
-    },
-
-    menuSection: { 
-        marginBottom: 20 
-    },
-
-    logoutBtn: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        padding: 18, 
-        borderRadius: 16, 
-        borderWidth: 1, 
-        borderColor: '#FEE2E2', 
-        backgroundColor: '#FFF' 
-    },
-
-    logoutText: { 
-        marginLeft: 10, 
-        color: '#EF4444', 
-        fontWeight: 'bold', 
-        fontSize: 15 
-    }
 });

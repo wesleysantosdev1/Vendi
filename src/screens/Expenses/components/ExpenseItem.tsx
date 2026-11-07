@@ -1,86 +1,47 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { TrendingDown, ChevronRight } from 'lucide-react-native';
+import { View, StyleSheet } from 'react-native';
+import { Package, Receipt } from 'lucide-react-native';
 import formatDateTime from '../../../utils/date';
+import { formatBRL } from '../../../utils/money';
 import { Expense } from '../../../contexts/ExpenseContext';
+import { TransactionRow } from '../../../components/TransactionRow';
+import { colors, radius } from '../../../theme';
 
 interface Props {
     item: Expense;
     onPress: () => void;
 }
 
-export const ExpenseItem = ({ item, onPress }: Props) => (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.left}>
-            <View style={styles.iconCircle}>
-                <TrendingDown size={20} color="#EF4444" />
-            </View>
+export const ExpenseItem = ({ item, onPress }: Props) => {
+    const Icon = item.type === 'merchandise' ? Package : Receipt;
+    const subtitle = item.quantity
+        ? `${formatDateTime(item.date)} · ${item.quantity} un.`
+        : formatDateTime(item.date);
 
-            <View style={styles.info}>
-                <Text style={styles.description} numberOfLines={1}>{item.description}</Text>
-                <Text style={styles.subDetails}>{formatDateTime(item.date)} • {item.quantity} un.</Text>
-            </View>
-        </View>
-        
-        <View style={styles.right}>
-            <Text style={styles.value}>- R$ {(item.value ?? 0).toFixed(2)}</Text>
-            <ChevronRight size={18} color="#828489" />
-        </View>
-    </TouchableOpacity>
-);
+    return (
+        <TransactionRow
+            title={item.description}
+            subtitle={subtitle}
+            amount={`− ${formatBRL(item.value)}`}
+            tone="negative"
+            onPress={onPress}
+            leading={
+                <View style={styles.iconBox}>
+                    <Icon size={18} color={colors.danger} strokeWidth={2.25} />
+                </View>
+            }
+        />
+    );
+};
 
 const styles = StyleSheet.create({
-    card: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    iconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: radius.md,
+        borderCurve: 'continuous',
+        backgroundColor: colors.dangerSoft,
         alignItems: 'center',
-        backgroundColor: '#FFF',
-        padding: 16,
-        borderRadius: 16,
-        marginBottom: 12,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
+        justifyContent: 'center',
     },
-    left: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        flex: 1 
-    },
-
-    iconCircle: { 
-        backgroundColor: '#FEE2E2', 
-        padding: 10, 
-        borderRadius: 12 
-    },
-
-    info: { 
-        marginLeft: 12, 
-        flex: 1 
-    },
-
-    description: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        color: '#1A1A1A' 
-    },
-
-    subDetails: { 
-        fontSize: 12, 
-        color: '#828489', 
-        marginTop: 2 
-    },
-
-    right: { 
-        flexDirection: 'row', 
-        alignItems: 'center' 
-    },
-
-    value: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        color: '#EF4444', 
-        marginRight: 8 
-    }
 });

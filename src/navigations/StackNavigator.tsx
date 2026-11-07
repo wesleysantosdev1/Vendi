@@ -8,6 +8,7 @@ import Register from "../screens/Auths/Register";
 import SaleDetails from "../screens/Sales/SaleDetails";
 import AddExpense from "../screens/Expenses/AddExpense";
 import { useAuth } from "../contexts/AuthContext";
+import { colors } from "../theme";
 
 
 const Stack = createNativeStackNavigator();
@@ -26,7 +27,7 @@ export default function StackNavigator(){
     }
 
     return(
-        <Stack.Navigator>
+        <Stack.Navigator screenOptions={{ contentStyle: { backgroundColor: colors.paper } }}>
             {token ? (
                 <>
                     <Stack.Screen name="Home" component={TabNavigator}
@@ -42,9 +43,7 @@ export default function StackNavigator(){
                     />
 
                     <Stack.Screen name="AddExpenseForm" component={AddExpense} options={{
-                        headerShown: true,
-                        headerTitle: '',
-                        headerTransparent: true
+                        headerShown: false
                     }} />
                 </>
             ) : (

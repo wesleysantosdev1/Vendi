@@ -1,24 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Package, DollarSign, FileText, Calendar, Hash, Box } from 'lucide-react-native';
+import { Package, Receipt, FileText, DollarSign, Calendar, Hash, Box, ChevronDown, Check } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Product } from '../../types/product';
 import { api } from '../../services/api';
-import { useFocusEffect } from '@react-navigation/native';
 
-export default function AddExpense({ navigation }: any) {
-    const [productsList, setProductsList] = useState<any[]>([]);
-    const [_products, setProducts] = useState<any[]>([]);
-    const [type, setType] = useState<'merchandise' | 'operational'>('merchandise');
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { TextField } from '../../components/TextField';
+import { Button } from '../../components/Button';
+import { BottomSheet } from '../../components/BottomSheet';
+import { EmptyState } from '../../components/EmptyState';
+import { colors, spacing, radius, type } from '../../theme';
+
+type ExpenseType = 'merchandise' | 'operational';
+
+const TYPE_OPTIONS: { key: ExpenseType; label: string; hint: string; Icon: typeof Package }[] = [
+    { key: 'merchandise', label: 'Mercadoria', hint: 'Compra para revender', Icon: Package },
+    { key: 'operational', label: 'Operacional', hint: 'Aluguel, frete, taxas', Icon: Receipt },
+];
+
+export default function AddExpense() {
+    const navigation = useNavigation();
+    const [productsList, setProductsList] = useState<Product[]>([]);
+    const [expenseType, setExpenseType] = useState<ExpenseType>('merchandise');
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [date, setDate] = useState('');
     const [quantity, setQuantity] = useState('');
-
+    const [saving, setSaving] = useState(false);
 
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isProductModalVisible, setIsProductModalVisible] = useState(false);
-
 
     useEffect(() => {
         async function fetchProducts() {
@@ -29,25 +42,9 @@ export default function AddExpense({ navigation }: any) {
                 console.log("Erro ao carregar a lista de produtos:", error);
             }
         }
-        
+
         fetchProducts();
     }, []);
-
-
-    useFocusEffect(
-        React.useCallback(() => {
-            async function loadProducts() {
-                try {
-                    const response = await api.get('/products');
-                    setProducts(response.data);
-                } catch (error) {
-                    console.error("Erro ao carregar produtos:", error);
-                }
-            }
-            loadProducts();
-        }, [])
-    );
-
 
     const handleDateChange = (text: string) => {
         let cleaned = text.replace(/\D/g, '');
@@ -61,7 +58,6 @@ export default function AddExpense({ navigation }: any) {
         setDate(formatted);
     }
 
-
     const handleSave = async () => {
         if (!description || !value || !date) {
             Alert.alert("Erro", "Preencha os campos obrigatórios");
@@ -69,7 +65,8 @@ export default function AddExpense({ navigation }: any) {
         }
 
         try {
-            const backendType = type === 'merchandise' ? 'COMPRA' : 'OPERACIONAL';
+            setSaving(true);
+            const backendType = expenseType === 'merchandise' ? 'COMPRA' : 'OPERACIONAL';
             const parsedQuantity = quantity ? parseInt(quantity, 10) : 0;
 
             const payload = {
@@ -82,319 +79,290 @@ export default function AddExpense({ navigation }: any) {
             };
 
             await api.post('/expenses', payload);
-            
+
             Alert.alert("Sucesso", "Gasto registrado!");
             navigation.goBack();
         } catch (error: any) {
-            console.log(error, "Erro aqui")
+            console.log("Erro ao salvar gasto:", error);
             Alert.alert("Erro", error.response?.data?.error || "Falha ao salvar no servidor.");
-    }
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Novo Gasto / Compra</Text>
-            </View>
+        <SafeAreaView style={styles.safe}>
+            <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                <ScrollView
+                    contentContainerStyle={styles.container}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <ScreenHeader eyebrow="Registrar" title="Novo gasto" onBack={() => navigation.goBack()} />
 
-            <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.label}>Tipo do gasto</Text>
-                
-                <View style={styles.typeContainer}>
-                    <TouchableOpacity 
-                        style={[styles.typeCard, type === 'merchandise' && styles.selectedType]} 
-                        onPress={() => setType('merchandise')}
-                    >
-                        <Package size={24} color={type === 'merchandise' ? '#EF4444' : '#828489'} />
-                        <Text style={[styles.typeText, type === 'merchandise' && styles.selectedText]}>Compra de{'\n'}mercadoria</Text>
-                    </TouchableOpacity>
+                    <View style={styles.content}>
+                        <Text style={styles.sectionTitle}>Tipo</Text>
+                        <View style={styles.typeContainer}>
+                            {TYPE_OPTIONS.map(({ key, label, hint, Icon }) => {
+                                const selected = expenseType === key;
+                                return (
+                                    <Pressable
+                                        key={key}
+                                        onPress={() => setExpenseType(key)}
+                                        accessibilityRole="radio"
+                                        accessibilityState={{ selected }}
+                                        style={[styles.typeCard, selected && styles.typeCardSelected]}
+                                    >
+                                        <View style={styles.typeTop}>
+                                            <Icon size={20} color={selected ? colors.lime : colors.ink} strokeWidth={2.25} />
+                                            {selected && <Check size={16} color={colors.lime} strokeWidth={3} />}
+                                        </View>
+                                        <Text style={[styles.typeLabel, selected && styles.typeLabelSelected]}>{label}</Text>
+                                        <Text style={[styles.typeHint, selected && styles.typeHintSelected]}>{hint}</Text>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
 
-                    <TouchableOpacity 
-                        style={[styles.typeCard, type === 'operational' && styles.selectedType]}
-                        onPress={() => setType('operational')}
-                    >
-                        <DollarSign size={24} color={type === 'operational' ? '#EF4444' : '#828489'} />
-                        <Text style={[styles.typeText, type === 'operational' && styles.selectedText]}>Gasto{'\n'}operacional</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <FileText size={20} color="#828489" />
-                    <TextInput 
-                        style={styles.input} 
-                        placeholder={type === 'merchandise' ? "Ex: 1 caixa de batom" : "Descrição do gasto"}
-                        placeholderTextColor="#000"
-                        value={description}
-                        onChangeText={setDescription}
-                    />
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <DollarSign size={20} color="#828489" />
-                    <TextInput 
-                        style={styles.input} 
-                        placeholder="Valor total (R$)"
-                        placeholderTextColor="#000"
-                        keyboardType="numeric"
-                        value={value}
-                        onChangeText={setValue}
-                    />
-                </View>
-
-                <View style={styles.inputContainer}>
-                    <Calendar size={20} color="#828489" />
-                    <TextInput 
-                        style={styles.input} 
-                        placeholder="dd/mm/aaaa"
-                        placeholderTextColor="#000"
-                        value={date}
-                        onChangeText={handleDateChange}
-                        keyboardType='numeric'
-                        maxLength={10}
-                    />
-                </View>
-
-                {type === 'merchandise' && (
-                    <View style={styles.inputContainer}>
-                        <Hash size={20} color="#828489" />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Quantidade comprada"
-                            placeholderTextColor="#000"
-                            keyboardType="numeric"
-                            value={quantity}
-                            onChangeText={setQuantity}
+                        <Text style={styles.sectionTitle}>Detalhes</Text>
+                        <TextField
+                            Icon={FileText}
+                            placeholder={expenseType === 'merchandise' ? "Ex: 1 caixa de batom" : "Descrição do gasto"}
+                            value={description}
+                            onChangeText={setDescription}
                         />
+
+                        <View style={styles.row}>
+                            <TextField
+                                Icon={DollarSign}
+                                placeholder="Valor (R$)"
+                                keyboardType="numeric"
+                                value={value}
+                                onChangeText={setValue}
+                                containerStyle={styles.rowItem}
+                            />
+                            <TextField
+                                Icon={Calendar}
+                                placeholder="dd/mm/aaaa"
+                                value={date}
+                                onChangeText={handleDateChange}
+                                keyboardType="numeric"
+                                maxLength={10}
+                                containerStyle={styles.rowItem}
+                            />
+                        </View>
+
+                        {expenseType === 'merchandise' && (
+                            <TextField
+                                Icon={Hash}
+                                placeholder="Quantidade comprada"
+                                keyboardType="numeric"
+                                value={quantity}
+                                onChangeText={setQuantity}
+                            />
+                        )}
+
+                        <Text style={styles.sectionTitle}>Vincular a produto · opcional</Text>
+                        <Pressable
+                            style={({ pressed }) => [styles.selectProduct, pressed && styles.selectProductPressed]}
+                            onPress={() => setIsProductModalVisible(true)}
+                            accessibilityRole="button"
+                        >
+                            <Box size={18} color={selectedProduct ? colors.ink : colors.inkFaint} />
+                            <Text
+                                style={[styles.selectProductText, !selectedProduct && styles.selectProductPlaceholder]}
+                                numberOfLines={1}
+                            >
+                                {selectedProduct ? selectedProduct.name : 'Selecionar produto'}
+                            </Text>
+                            <ChevronDown size={18} color={colors.inkSoft} />
+                        </Pressable>
                     </View>
+                </ScrollView>
+
+                <View style={styles.footer}>
+                    <Button title="Salvar gasto" onPress={handleSave} loading={saving} />
+                </View>
+            </KeyboardAvoidingView>
+
+            <BottomSheet
+                visible={isProductModalVisible}
+                onClose={() => setIsProductModalVisible(false)}
+                title="Escolha um produto"
+            >
+                {productsList.length === 0 ? (
+                    <EmptyState Icon={Package} title="Nenhum produto cadastrado" />
+                ) : (
+                    productsList.map(item => {
+                        const selected = selectedProduct?.id === item.id;
+                        return (
+                            <Pressable
+                                key={item.id}
+                                style={({ pressed }) => [styles.productListItem, pressed && styles.selectProductPressed]}
+                                onPress={() => {
+                                    setSelectedProduct(item);
+                                    setIsProductModalVisible(false);
+                                }}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected }}
+                            >
+                                <View style={styles.flex}>
+                                    <Text style={styles.productListName}>{item.name}</Text>
+                                    <Text style={styles.productListStock}>{item.stock} em estoque</Text>
+                                </View>
+                                {selected && <Check size={18} color={colors.ink} strokeWidth={2.75} />}
+                            </Pressable>
+                        );
+                    })
                 )}
 
-                <Text style={styles.sectionTitle}>Vincular a produto (opcional)</Text>
-                <TouchableOpacity 
-                    style={styles.selectProductBtn}
-                    onPress={() => setIsProductModalVisible(true)}
-                >
-                    <Box size={20} color={selectedProduct ? "#4963E4" : "#828489"}/>
-                    <Text style={[styles.selectProductText, !selectedProduct && { color: '#828489' }]}>
-                        {selectedProduct ? selectedProduct.name : 'Selecionar produto'}
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                    <Text style={styles.saveBtnText}>Salvar gasto</Text>
-                </TouchableOpacity>
-
-                {/* Modal para a selecao de produtos */}
-                <Modal visible={isProductModalVisible} animationType="slide" transparent>
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Escolha um produto</Text>
-                            <FlatList 
-                                data={productsList}
-                                keyExtractor={item => item.id}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity 
-                                        style={styles.productListItem}
-                                        onPress={() => {
-                                            setSelectedProduct(item);
-                                            setIsProductModalVisible(false);
-                                        }}
-                                    >
-                                        <Text style={styles.productListName}>{item.name}</Text>
-                                        <Text style={styles.productListStock}>{item.stock} em estoque</Text>
-                                    </TouchableOpacity>
-                                )}
-                                ListEmptyComponent={<Text style={{textAlign: 'center', marginTop: 20}}>Nenhum produto cadastrado.</Text>}
-                            />
-                            <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsProductModalVisible(false)}>
-                                <Text style={styles.cancelBtnText}>Cancelar</Text>
-                            </TouchableOpacity>
-
-                            {selectedProduct && (
-                                <TouchableOpacity style={styles.clearBtn} onPress={() => { setSelectedProduct(null); setIsProductModalVisible(false); }}>
-                                    <Text style={styles.clearBtnText}>Remover vínculo</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-                </Modal>
-            </ScrollView>
+                {selectedProduct && (
+                    <Button
+                        title="Remover vínculo"
+                        variant="ghost"
+                        onPress={() => { setSelectedProduct(null); setIsProductModalVisible(false); }}
+                        style={styles.unlink}
+                    />
+                )}
+            </BottomSheet>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        backgroundColor: '#FFF'
+    safe: {
+        flex: 1,
+        backgroundColor: colors.paper,
     },
 
-    header: { 
-        paddingTop: 40, 
-        marginLeft: 20
+    flex: {
+        flex: 1,
     },
 
-    title: { 
-        fontSize: 22, 
-        fontWeight: 'bold', 
-        color: '#000' 
+    container: {
+        paddingBottom: spacing.xxl,
     },
 
-    content: { 
-        padding: 20 
+    content: {
+        paddingHorizontal: spacing.xl,
     },
 
-    label: { 
-        fontSize: 16, 
-        fontWeight: 'bold', 
-        marginBottom: 15, 
-        color: '#000' 
+    sectionTitle: {
+        ...type.eyebrow,
+        marginBottom: spacing.sm,
+        marginTop: spacing.sm,
     },
 
-    typeContainer: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginBottom: 25 
+    typeContainer: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginBottom: spacing.xl,
     },
 
-    typeCard: { 
-        width: '48%', 
-        backgroundColor: '#F0F2F5', 
-        padding: 20, borderRadius: 12,
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        borderWidth: 1, 
-        borderColor: 'transparent' 
+    typeCard: {
+        flex: 1,
+        backgroundColor: colors.surface,
+        borderWidth: 1.5,
+        borderColor: colors.line,
+        borderRadius: radius.lg,
+        borderCurve: 'continuous',
+        padding: spacing.lg,
     },
 
-    selectedType: { 
-        backgroundColor: '#FEE2E2', 
-        borderColor: '#EF4444' 
+    typeCardSelected: {
+        backgroundColor: colors.ink,
+        borderColor: colors.ink,
     },
 
-    typeText: { 
-        marginTop: 10, 
-        textAlign: 'center', 
-        color: '#828489', 
-        fontWeight: '500' 
+    typeTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: spacing.lg,
     },
 
-    selectedText: { 
-        color: '#EF4444', 
-        fontWeight: 'bold' 
-    },
-    
-    inputContainer: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: '#F0F2F5', 
-        paddingHorizontal: 15, 
-        height: 55, 
-        borderRadius: 12, 
-        marginBottom: 15 
+    typeLabel: {
+        ...type.subheading,
+        fontSize: 15,
     },
 
-    input: { 
-        flex: 1, 
-        marginLeft: 10, 
-        fontSize: 15, 
-        color: "#000" 
-    },
-    
-    sectionTitle: { 
-        fontSize: 14, 
-        fontWeight: 'bold', 
-        marginTop: 10, 
-        marginBottom: 10, 
-        color: '#000' 
+    typeLabelSelected: {
+        color: colors.onInk,
     },
 
-    selectProductBtn: { 
-        flexDirection: 'row', 
-        backgroundColor: '#F0F2F5', 
-        height: 55, 
-        borderRadius: 12, 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        marginBottom: 30 
+    typeHint: {
+        ...type.caption,
+        fontSize: 12,
+        marginTop: 2,
     },
 
-    selectProductText: { 
-        color: '#4963E4', 
-        fontWeight: 'bold', 
-        marginLeft: 10 
-    },
-    
-    saveBtn: { 
-        backgroundColor: '#EF4444', 
-        height: 55, 
-        borderRadius: 12, 
-        alignItems: 'center', 
-        justifyContent: 'center' 
+    typeHintSelected: {
+        color: colors.onInkSoft,
     },
 
-    saveBtnText: { 
-        color: '#FFF', 
-        fontSize: 16, 
-        fontWeight: 'bold' 
-    }, 
-
-    modalOverlay: { 
-        flex: 1, 
-        backgroundColor: 'rgba(0,0,0,0.5)', 
-        justifyContent: 'flex-end' 
+    row: {
+        flexDirection: 'row',
+        gap: spacing.sm,
     },
 
-    modalContent: { 
-        backgroundColor: '#FFF', 
-        padding: 20, 
-        borderTopLeftRadius: 20, 
-        borderTopRightRadius: 20, maxHeight: '80%' 
+    rowItem: {
+        flex: 1,
     },
 
-    modalTitle: { 
-        fontSize: 18, 
-        fontWeight: 'bold', 
-        marginBottom: 15 
-    
+    selectProduct: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        backgroundColor: colors.surface,
+        borderWidth: 1.5,
+        borderColor: colors.line,
+        borderStyle: 'dashed',
+        minHeight: 54,
+        borderRadius: radius.md,
+        borderCurve: 'continuous',
+        paddingHorizontal: spacing.lg,
     },
 
-    productListItem: { 
-        paddingVertical: 15, 
-        borderBottomWidth: 1, 
-        borderBottomColor: '#F0F2F5' 
+    selectProductPressed: {
+        opacity: 0.6,
     },
 
-    productListName: { 
-        fontSize: 16, 
-        color: '#1A1A1A' 
-    },
-    productListStock: { 
-        fontSize: 13, 
-        color: '#828489', 
-        marginTop: 4 
+    selectProductText: {
+        ...type.bodyStrong,
+        flex: 1,
     },
 
-    cancelBtn: { 
-        marginTop: 20, 
-        padding: 15, 
-        alignItems: 'center', 
-        backgroundColor: '#F0F2F5', 
-        borderRadius: 10 
+    selectProductPlaceholder: {
+        color: colors.inkFaint,
+        fontWeight: '400',
     },
 
-    cancelBtnText: { 
-        fontWeight: 'bold', 
-        color: '#1A1A1A' 
+    footer: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.surface,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.line,
     },
 
-    clearBtn: { 
-        marginTop: 10, 
-        padding: 15, 
-        alignItems: 'center' 
+    productListItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingVertical: spacing.md + 2,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.line,
     },
 
-    clearBtnText: { 
-        color: '#EF4444', 
-        fontWeight: 'bold' 
-    }
+    productListName: {
+        ...type.bodyStrong,
+    },
+
+    productListStock: {
+        ...type.caption,
+        marginTop: 2,
+    },
+
+    unlink: {
+        marginTop: spacing.md,
+    },
 });

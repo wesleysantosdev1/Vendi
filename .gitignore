@@ -77,3 +77,8 @@ yarn-error.log
 # Claude Code project context (local only, not shared via git)
 CLAUDE.md
 .claude/skills/
+
+# Expo
+.expo/
+dist/
+web-build/

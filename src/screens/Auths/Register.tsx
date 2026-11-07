@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {View, Text, StyleSheet, Image, TextInput, Platform, TouchableOpacity } from "react-native";
-import { Mail, Lock, User, ArrowLeft } from "lucide-react-native";
+import { Mail, User, ArrowLeft } from "lucide-react-native";
+import { PasswordInput } from "../../components/PasswordInput";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../navigations/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -92,29 +93,19 @@ export default function Register(){
                 />
             </View>
 
-            <View style={styles.viewInputs}>
-                <Lock size={20} color="#000" />
-                <TextInput 
-                placeholderTextColor="#000"
+            <PasswordInput
                 placeholder="Senha"
-                secureTextEntry
                 value={password}
                 onChangeText={setPassword}
-                style={styles.Inputs}
-                />
-            </View>
+                autoComplete="new-password"
+            />
 
-            <View style={styles.viewInputs}>
-                <Lock size={20} color="#000" />
-                <TextInput 
-                placeholderTextColor="#000"
+            <PasswordInput
                 placeholder="Confirmar senha"
-                secureTextEntry
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                style={styles.Inputs}
-                />
-            </View>
+                autoComplete="new-password"
+            />
 
             <View style={styles.viewButton}>
                 <TouchableOpacity 

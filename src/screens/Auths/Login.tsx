@@ -1,6 +1,7 @@
 import React from "react";
 import {View, Text, StyleSheet, Image, Platform, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
-import { Mail, Lock } from "lucide-react-native";
+import { Mail } from "lucide-react-native";
+import { PasswordInput } from "../../components/PasswordInput";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../../navigations/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -66,17 +67,12 @@ export default function Login(){
                 />
             </View>
 
-            <View style={styles.viewInputs}>
-                <Lock size={20} color="#000" />
-                <TextInput 
+            <PasswordInput
                 placeholder="Senha"
-                placeholderTextColor="#000"
-                secureTextEntry
                 value={password}
                 onChangeText={setPassword}
-                style={styles.Inputs}
-                />
-            </View>
+                autoComplete="password"
+            />
 
             <View style={styles.viewButton}>
                 <TouchableOpacity

@@ -5,6 +5,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import * as Updates from 'expo-updates';
+import formatDateTime from '../../utils/date';
 
 import { StatCard, MenuItem } from './components/ProfileComponents';
 import { SupportModal } from './components/SupportModal';
@@ -99,6 +101,8 @@ export default function ProfileScreen() {
                         </TouchableOpacity>
                     </>
                 )}
+
+                <Text style={styles.versionText}>{getVersionLabel()}</Text>
             </ScrollView>
 
             <EditProfileModal 
@@ -115,7 +119,26 @@ export default function ProfileScreen() {
     );
 }
 
+// Mostra qual código JS está rodando: o embutido no build ou um update OTA
+// (com a data de publicação). Serve pra confirmar se um update chegou no celular.
+function getVersionLabel() {
+    if (__DEV__) {
+        return 'Versão de desenvolvimento';
+    }
+    if (!Updates.isEnabled || Updates.isEmbeddedLaunch || !Updates.createdAt) {
+        return `Versão do build${Updates.channel ? ` · ${Updates.channel}` : ''}`;
+    }
+    return `Atualização de ${formatDateTime(Updates.createdAt.toISOString())}${Updates.channel ? ` · ${Updates.channel}` : ''}`;
+}
+
 const styles = StyleSheet.create({
+    versionText: {
+        marginTop: 24,
+        textAlign: 'center',
+        fontSize: 12,
+        color: '#828489'
+    },
+
     safe: { 
         flex: 1, 
         backgroundColor: '#F8F9FA' 
